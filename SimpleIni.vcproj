@@ -126,7 +126,6 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="icuuc.lib"
 				OutputFile="$(OutDir)/testsi.exe"
 				LinkIncremental="2"
 				GenerateDebugInformation="TRUE"
@@ -172,7 +171,6 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="icuuc.lib"
 				OutputFile="$(OutDir)/testsi.exe"
 				LinkIncremental="1"
 				GenerateDebugInformation="TRUE"

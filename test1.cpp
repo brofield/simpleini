@@ -47,9 +47,13 @@ bool FileComparisonTest(const char * a_pszFile1, const char * a_pszFile2) {
         std::string strFile1, strFile2;
 
         char szBuf[1024];
-        FILE * fp;
+        FILE * fp = NULL;
         
-        fp = fopen(a_pszFile1, "rb");
+#if __STDC_WANT_SECURE_LIB__
+		fopen_s(&fp, a_pszFile1, "rb");
+#else
+		fp = fopen(a_pszFile1, "rb");
+#endif
         if (!fp) throw false;
         while (!feof(fp)) {
             size_t n = fread(szBuf, 1, sizeof(szBuf), fp);
@@ -57,7 +61,12 @@ bool FileComparisonTest(const char * a_pszFile1, const char * a_pszFile2) {
         }
         fclose(fp);
 
-        fp = fopen(a_pszFile2, "rb");
+		fp = NULL;
+#if __STDC_WANT_SECURE_LIB__
+		fopen_s(&fp, a_pszFile2, "rb");
+#else
+		fp = fopen(a_pszFile2, "rb");
+#endif
         if (!fp) throw false;
         while (!feof(fp)) {
             size_t n = fread(szBuf, 1, sizeof(szBuf), fp);
@@ -88,8 +97,8 @@ bool FileLoadTest(const char * a_pszFile1, const char * a_pszFile2) {
         if (ini.SaveFile("test2.ini") < 0) throw "Save failed for file 2";
 
         b = FileComparisonTest("test1.ini", "test2.ini");
-        unlink("test1.ini");
-        unlink("test2.ini");
+        _unlink("test1.ini");
+        _unlink("test2.ini");
 
         if (!b) throw "File comparison failed in FileLoadTest";
     }

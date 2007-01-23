@@ -3,9 +3,9 @@
     <table>
         <tr><th>Library     <td>SimpleIni
         <tr><th>File        <td>SimpleIni.h
-        <tr><th>Author      <td>Brodie Thiesfield <code@jellycan.com>
+        <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.0
+        <tr><th>Version     <td>4.0.1
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -38,8 +38,11 @@
     - support for non-standard character types or file encodings
       via user-written converter classes
     - support for adding/modifying values programmatically
-    - compiles cleanly at warning level 4 (Windows/VC.NET 2003), warning level
-      3 (Windows/VC6) and -Wall (Linux/gcc)
+    - compiles cleanly in the following compilers:
+        - Windows/VC6 (warning level 3)
+        - Windows/VC.NET 2003 (warning level 4)
+        - Windows/VC 2005 (warning level 4)
+        - Linux/gcc (-Wall)
 
 
     @section USAGE SUMMARY
@@ -193,12 +196,13 @@
 //  4127 "conditional expression is constant" as the conversion classes trigger
 //  it with the statement if (sizeof(SI_CHAR) == sizeof(char)). This test will
 //  be optimized away in a release build.
+//  4503 'insert' : decorated name length exceeded, name was truncated
 //  4702 "unreachable code" as the MS STL header causes it in release mode.
 //  Again, the code causing the warning will be cleaned up by the compiler.
 //  4786 "identifier truncated to 256 characters" as this is thrown hundreds
 //  of times VC6 as soon as STL is used.
 #ifdef _MSC_VER
-# pragma warning (disable: 4127 4702 4786)
+# pragma warning (disable: 4127 4503 4702 4786)
 #endif
 
 #include <string>
@@ -280,18 +284,19 @@ class CSimpleIniTempl
 {
 public:
     /** key entry */
-    struct Entry {
+	template<class SI_CHAR, class SI_STRLESS>
+    struct EntryTempl {
         const SI_CHAR * pItem;
         const SI_CHAR * pComment;
         int             nOrder;
 
-        Entry(const SI_CHAR * a_pszItem = NULL, int a_nOrder = 0)
+        EntryTempl(const SI_CHAR * a_pszItem = NULL, int a_nOrder = 0)
             : pItem(a_pszItem)
             , pComment(NULL)
             , nOrder(a_nOrder)
         { }
-        Entry(const Entry & rhs) { operator=(rhs); }
-        Entry & operator=(const Entry & rhs) {
+        EntryTempl(const EntryTempl & rhs) { operator=(rhs); }
+        EntryTempl & operator=(const EntryTempl & rhs) {
             pItem     = rhs.pItem;
             pComment = rhs.pComment;
             nOrder     = rhs.nOrder;
@@ -300,21 +305,21 @@ public:
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
         /** STL of VC6 doesn't allow me to specify my own comparator for list::sort() */
-        bool operator<(const Entry & rhs) const { return LoadOrder()(*this, rhs); }
-        bool operator>(const Entry & rhs) const { return LoadOrder()(rhs, *this); }
+        bool operator<(const EntryTempl & rhs) const { return LoadOrder()(*this, rhs); }
+        bool operator>(const EntryTempl & rhs) const { return LoadOrder()(rhs, *this); }
 #endif
 
         /** Strict less ordering by name of key only */
-        struct KeyOrder : std::binary_function<Entry, Entry, bool> {
-            bool operator()(const Entry & lhs, const Entry & rhs) const {
+        struct KeyOrder : std::binary_function<EntryTempl, EntryTempl, bool> {
+            bool operator()(const EntryTempl & lhs, const EntryTempl & rhs) const {
                 const static SI_STRLESS isLess = SI_STRLESS();
                 return isLess(lhs.pItem, rhs.pItem);
             }
         };
 
         /** Strict less ordering by order, and then name of key */
-        struct LoadOrder : std::binary_function<Entry, Entry, bool> {
-            bool operator()(const Entry & lhs, const Entry & rhs) const {
+        struct LoadOrder : std::binary_function<EntryTempl, EntryTempl, bool> {
+            bool operator()(const EntryTempl & lhs, const EntryTempl & rhs) const {
                 if (lhs.nOrder != rhs.nOrder) {
                     return lhs.nOrder < rhs.nOrder;
                 }
@@ -322,12 +327,13 @@ public:
             }
         };
     };
+	typedef EntryTempl<SI_CHAR,SI_STRLESS> Entry;
 
     /** map keys to values */
-    typedef std::multimap<Entry,const SI_CHAR *,Entry::KeyOrder> TKeyVal;
+    typedef std::multimap<Entry,const SI_CHAR *,typename Entry::KeyOrder> TKeyVal;
 
     /** map sections to key/value map */
-    typedef std::map<Entry,TKeyVal,Entry::KeyOrder> TSection;
+    typedef std::map<Entry,TKeyVal,typename Entry::KeyOrder> TSection;
 
     /** set of dependent string pointers. Note that these pointers are
         dependent on memory owned by CSimpleIni.
@@ -920,7 +926,7 @@ private:
 
 
     /** Skip over a newline character (or characters) for either DOS or UNIX */
-    inline void SkipNewLine(const SI_CHAR *& a_pData) const {
+    inline void SkipNewLine(SI_CHAR *& a_pData) const {
         a_pData += (*a_pData == '\r' && *(a_pData+1) == '\n') ? 2 : 1;
     }
 
@@ -956,7 +962,7 @@ private:
     size_t m_uDataLen;
 
     /** File comment for this data, if one exists. */
-    SI_CHAR * m_pFileComment;
+    const SI_CHAR * m_pFileComment;
 
     /** Parsed INI data. Section -> (Key -> Value). */
     TSection m_data;
@@ -1036,7 +1042,12 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     const char * a_pszFile
     )
 {
-    FILE * fp = fopen(a_pszFile, "rb");
+    FILE * fp = NULL;
+#if __STDC_WANT_SECURE_LIB__
+	fopen_s(&fp, a_pszFile, "rb");
+#else
+	fp = fopen(a_pszFile, "rb");
+#endif
     if (!fp) {
         return SI_FILE;
     }
@@ -1053,7 +1064,12 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     )
 {
 #ifdef _WIN32
-    FILE * fp = _wfopen(a_pwszFile, L"rb");
+    FILE * fp = NULL;
+#if __STDC_WANT_SECURE_LIB__
+	_wfopen_s(&fp, a_pwszFile, L"rb");
+#else
+	fp = _wfopen(a_pwszFile, L"rb");
+#endif
     if (!fp) return SI_FILE;
     SI_Error rc = LoadFile(fp);
     fclose(fp);
@@ -1766,7 +1782,12 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
     const char * a_pszFile
     )
 {
-    FILE * fp = fopen(a_pszFile, "wb");
+    FILE * fp = NULL;
+#if __STDC_WANT_SECURE_LIB__
+	fopen_s(&fp, a_pszFile, "wb");
+#else
+	fp = fopen(a_pszFile, "wb");
+#endif
     if (!fp) return SI_FILE;
     SI_Error rc = SaveFile(fp, true);
     fclose(fp);
@@ -2617,7 +2638,7 @@ struct SI_NoCase {
                 (const unsigned char *)pRight) < 0;
         }
         if (sizeof(SI_CHAR) == sizeof(wchar_t)) {
-            return wcsicmp((const wchar_t *)pLeft,
+            return _wcsicmp((const wchar_t *)pLeft,
                 (const wchar_t *)pRight) < 0;
         }
         return SI_GenericNoCase<SI_CHAR>()(pLeft, pRight);

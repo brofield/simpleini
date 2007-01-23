@@ -22,6 +22,11 @@
 //#define SI_CONVERT_WIN32
 #include "SimpleIni.h"
 
+#ifdef SI_CONVERT_ICU
+// if converting using ICU then we need the ICU library
+# pragma comment(lib, "icuuc.lib")
+#endif
+
 #ifdef _WIN32
 # include <tchar.h>
 #else // !_WIN32
@@ -184,7 +189,12 @@ TestFile(
     // Note: to save the file and add a comment to the beginning, use
     // code such as the following.
     _tprintf(_T("\n-- Saving file to: testsi-out-comment.ini\n"));
-    FILE * fp = fopen("testsi-out-comment.ini", "wb");
+	FILE * fp = NULL;
+#if __STDC_WANT_SECURE_LIB__
+	fopen_s(&fp, "testsi-out-comment.ini", "wb");
+#else
+	fp = fopen("testsi-out-comment.ini", "wb");
+#endif
     if (fp) {
         // add a string to the file in the correct text format
         CSimpleIni::Converter convert = ini.GetConverter();
