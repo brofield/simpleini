@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.0.1
+        <tr><th>Version     <td>4.1
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -116,9 +116,10 @@
       before ENDTAG in the end tag is not included in the data value.
     - The ending tag must be on it's own line with no whitespace before
       or after it.
-    - The multi-line value is not modified at load or save. This means
-      that the newline format (PC, Unix, Mac) is whatever the original
-      file uses.
+    - The multi-line value is modified at load so that each line in the value
+      is delimited by a single '\n' character on all platforms. At save time
+      it will be converted into the newline format used by the current 
+      platform.
 
     @section COMMENTS
 
@@ -233,7 +234,7 @@ enum SI_Error {
     SI_FILE     = -3    //!< File error (see errno for detail error)
 };
 
-#define SI_BOM_UTF8     "\xEF\xBB\xBF"
+#define SI_UTF8_SIGNATURE     "\xEF\xBB\xBF"
 
 #ifdef _WIN32
 # define SI_NEWLINE_A   "\r\n"
@@ -284,19 +285,18 @@ class CSimpleIniTempl
 {
 public:
     /** key entry */
-	template<class SI_CHAR, class SI_STRLESS>
-    struct EntryTempl {
+    struct Entry {
         const SI_CHAR * pItem;
         const SI_CHAR * pComment;
         int             nOrder;
 
-        EntryTempl(const SI_CHAR * a_pszItem = NULL, int a_nOrder = 0)
+        Entry(const SI_CHAR * a_pszItem = NULL, int a_nOrder = 0)
             : pItem(a_pszItem)
             , pComment(NULL)
             , nOrder(a_nOrder)
         { }
-        EntryTempl(const EntryTempl & rhs) { operator=(rhs); }
-        EntryTempl & operator=(const EntryTempl & rhs) {
+        Entry(const Entry & rhs) { operator=(rhs); }
+        Entry & operator=(const Entry & rhs) {
             pItem     = rhs.pItem;
             pComment = rhs.pComment;
             nOrder     = rhs.nOrder;
@@ -305,21 +305,21 @@ public:
 
 #if defined(_MSC_VER) && _MSC_VER <= 1200
         /** STL of VC6 doesn't allow me to specify my own comparator for list::sort() */
-        bool operator<(const EntryTempl & rhs) const { return LoadOrder()(*this, rhs); }
-        bool operator>(const EntryTempl & rhs) const { return LoadOrder()(rhs, *this); }
+        bool operator<(const Entry & rhs) const { return LoadOrder()(*this, rhs); }
+        bool operator>(const Entry & rhs) const { return LoadOrder()(rhs, *this); }
 #endif
 
         /** Strict less ordering by name of key only */
-        struct KeyOrder : std::binary_function<EntryTempl, EntryTempl, bool> {
-            bool operator()(const EntryTempl & lhs, const EntryTempl & rhs) const {
+        struct KeyOrder : std::binary_function<Entry, Entry, bool> {
+            bool operator()(const Entry & lhs, const Entry & rhs) const {
                 const static SI_STRLESS isLess = SI_STRLESS();
                 return isLess(lhs.pItem, rhs.pItem);
             }
         };
 
         /** Strict less ordering by order, and then name of key */
-        struct LoadOrder : std::binary_function<EntryTempl, EntryTempl, bool> {
-            bool operator()(const EntryTempl & lhs, const EntryTempl & rhs) const {
+        struct LoadOrder : std::binary_function<Entry, Entry, bool> {
+            bool operator()(const Entry & lhs, const Entry & rhs) const {
                 if (lhs.nOrder != rhs.nOrder) {
                     return lhs.nOrder < rhs.nOrder;
                 }
@@ -327,7 +327,6 @@ public:
             }
         };
     };
-	typedef EntryTempl<SI_CHAR,SI_STRLESS> Entry;
 
     /** map keys to values */
     typedef std::multimap<Entry,const SI_CHAR *,typename Entry::KeyOrder> TKeyVal;
@@ -397,14 +396,13 @@ public:
     /** Characterset conversion utility class to convert strings to the
         same format as is used for the storage.
     */
-    template <class SI_CHAR>
-    class ConverterTempl : private SI_CONVERTER {
+    class Converter : private SI_CONVERTER {
     public:
-        ConverterTempl(bool a_bStoreIsUtf8) : SI_CONVERTER(a_bStoreIsUtf8) {
+        Converter(bool a_bStoreIsUtf8) : SI_CONVERTER(a_bStoreIsUtf8) {
             m_scratch.resize(1024);
         }
-        ConverterTempl(const ConverterTempl & rhs) { operator=(rhs); }
-        ConverterTempl & operator=(const ConverterTempl & rhs) {
+        Converter(const Converter & rhs) { operator=(rhs); }
+        Converter & operator=(const Converter & rhs) {
             m_scratch = rhs.m_scratch;
             return *this;
         }
@@ -425,7 +423,6 @@ public:
     private:
         std::string m_scratch;
     };
-    typedef ConverterTempl<SI_CHAR> Converter;
 
 public:
     /*-----------------------------------------------------------------------*/
@@ -592,10 +589,15 @@ public:
                             to fopen() and so must be a valid path for the
                             current platform.
 
+        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is
+                            in UTF-8 format. If it is not UTF-8 then 
+                            this parameter is ignored.
+
         @return SI_Error    See error definitions
      */
     SI_Error SaveFile(
-        const char * a_pszFile
+        const char *    a_pszFile,
+        bool            a_bAddSignature = true
         );
 
 #ifdef SI_HAS_WIDE_FILE
@@ -603,26 +605,33 @@ public:
 
         @param a_pwszFile   Path of the file to be saved in UTF-16.
 
+        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is
+                            in UTF-8 format. If it is not UTF-8 then 
+                            this parameter is ignored.
+
         @return SI_Error    See error definitions
      */
     SI_Error SaveFile(
-        const SI_WCHAR_T * a_pwszFile
+        const SI_WCHAR_T *  a_pwszFile,
+        bool                a_bAddSignature = true
         );
 #endif // _WIN32
 
-    /**
-     * Save the INI data to a file. See Save() for details. Do not set
-     * a_bUseBOM to true if any information has been written to the file
-     * prior to calling this method.
-     *
-     * @param a_pFile       Handle to a file. File should be opened for
-     *                      binary output.
-     * @param a_bUseBOM     Prepend the UTF-8 BOM if the output data is
-     *                      in UTF-8 format.
+    /** Save the INI data to a file. See Save() for details. 
+     
+        @param a_pFile      Handle to a file. File should be opened for
+                            binary output.
+
+        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in 
+                            UTF-8 format. If it is not UTF-8 then this value is
+                            ignored. Do not set this to true if anything has
+                            already been written to the file.
+
+        @return SI_Error    See error definitions
      */
     SI_Error SaveFile(
         FILE *  a_pFile,
-        bool    a_bUseBOM = false
+        bool    a_bAddSignature = false
         ) const;
 
     /** Save the INI data. The data will be written to the output device
@@ -649,10 +658,16 @@ public:
 
         @param a_oOutput    Output writer to write the data to.
 
+        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in 
+                            UTF-8 format. If it is not UTF-8 then this value is
+                            ignored. Do not set this to true if anything has
+                            already been written to the OutputWriter.
+
         @return SI_Error    See error definitions
      */
     SI_Error Save(
-        OutputWriter & a_oOutput
+        OutputWriter &  a_oOutput,
+        bool            a_bAddSignature = false
         ) const;
 
 #ifdef SI_SUPPORT_IOSTREAMS
@@ -660,29 +675,41 @@ public:
 
         @param a_ostream    String to have the INI data appended to.
 
+        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in 
+                            UTF-8 format. If it is not UTF-8 then this value is
+                            ignored. Do not set this to true if anything has
+                            already been written to the stream.
+
         @return SI_Error    See error definitions
      */
     SI_Error Save(
-        std::ostream & a_ostream
+        std::ostream &  a_ostream,
+        bool            a_bAddSignature = false
         ) const
     {
         StreamWriter writer(a_ostream);
-        return Save(writer);
+        return Save(writer, a_bAddSignature);
     }
 #endif // SI_SUPPORT_IOSTREAMS
 
-    /** Save the INI data to a string. See Save() for details.
+    /** Append the INI data to a string. See Save() for details.
 
         @param a_sBuffer    String to have the INI data appended to.
+
+        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in 
+                            UTF-8 format. If it is not UTF-8 then this value is
+                            ignored. Do not set this to true if anything has
+                            already been written to the string.
 
         @return SI_Error    See error definitions
      */
     SI_Error Save(
-        std::string & a_sBuffer
+        std::string &   a_sBuffer,
+        bool            a_bAddSignature = false
         ) const
     {
         StringWriter writer(a_sBuffer);
-        return Save(writer);
+        return Save(writer, a_bAddSignature);
     }
 
     /*-----------------------------------------------------------------------*/
@@ -1044,9 +1071,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
 {
     FILE * fp = NULL;
 #if __STDC_WANT_SECURE_LIB__
-	fopen_s(&fp, a_pszFile, "rb");
+    fopen_s(&fp, a_pszFile, "rb");
 #else
-	fp = fopen(a_pszFile, "rb");
+    fp = fopen(a_pszFile, "rb");
 #endif
     if (!fp) {
         return SI_FILE;
@@ -1066,9 +1093,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
 #ifdef _WIN32
     FILE * fp = NULL;
 #if __STDC_WANT_SECURE_LIB__
-	_wfopen_s(&fp, a_pwszFile, L"rb");
+    _wfopen_s(&fp, a_pwszFile, L"rb");
 #else
-	fp = _wfopen(a_pwszFile, L"rb");
+    fp = _wfopen(a_pwszFile, L"rb");
 #endif
     if (!fp) return SI_FILE;
     SI_Error rc = LoadFile(fp);
@@ -1125,7 +1152,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Load(
 
     // consume the UTF-8 BOM if it exists
     if (m_bStoreIsUtf8 && a_uDataLen >= 3) {
-        if (memcmp(a_pData, SI_BOM_UTF8, 3) == 0) {
+        if (memcmp(a_pData, SI_UTF8_SIGNATURE, 3) == 0) {
             a_pData    += 3;
             a_uDataLen -= 3;
         }
@@ -1158,6 +1185,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Load(
     const SI_CHAR * pItem = NULL;
     const SI_CHAR * pVal = NULL;
     const SI_CHAR * pComment = NULL;
+
+    // We copy the strings if we are loading data into this class when we 
+    // already have stored some.
     bool bCopyStrings = (m_pData != NULL);
 
     // find a file comment if it exists, this is a comment that starts at the
@@ -1165,9 +1195,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Load(
     SI_Error rc = FindFileComment(pWork, bCopyStrings);
     if (rc < 0) return rc;
 
-    // add every entry in the file to the data table. We copy the strings if
-    // we are loading data into this class when we already have stored some
-    // because we only store a single block.
+    // add every entry in the file to the data table
     while (FindEntry(pWork, pSection, pItem, pVal, pComment)) {
         rc = AddEntry(pSection, pItem, pVal, pComment, bCopyStrings);
         if (rc < 0) return rc;
@@ -1459,49 +1487,74 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindMultiLine(
     const SI_CHAR *&    a_pVal
     ) const
 {
+    // The multiline tag is passed into this function with the "<<<TAG" entry in
+    // a_pVal and a_pData pointing to the first line following this tag.
+
     // skip the "<<<" to get the tag that will end the multiline
     const SI_CHAR * pTagName = a_pVal + 3;
     a_pVal = a_pData; // real value starts on next line
 
+    // we modify this data to strip all newlines down to a single '\n'
+    // character. This means that on Windows we need to strip out some
+    // characters which will make the data shorter. 
+    // i.e.  LINE1-LINE1\r\nLINE2-LINE2\0 will become
+    //       LINE1-LINE1\nLINE2-LINE2\0 
+    // The pDataLine entry is the pointer to the location in memory that 
+    // the current line needs to start to run following the existing one. 
+    // This may be the same as pCurrLine in which case no move is needed.
+    SI_CHAR * pDataLine = a_pData;
+    SI_CHAR * pCurrLine;
+
     // find the end tag. This tag must start in column 1 and be
     // followed by a newline. No whitespace removal is done while
     // searching for this tag.
-    SI_CHAR *pLine;
-    SI_CHAR cRememberThis;
+    SI_CHAR cEndOfLineChar;
     for(;;) {
-        // find the beginning and end of this line
-        while (IsNewLineChar(*a_pData)) ++a_pData;
-        pLine = a_pData;
+        // find the end of this line
+        pCurrLine = a_pData;
         while (*a_pData && !IsNewLineChar(*a_pData)) ++a_pData;
 
+        // move this line down to the location that it should be if necessary
+        if (pDataLine < pCurrLine) {
+            memmove(pDataLine, pCurrLine, a_pData - pCurrLine);
+            pDataLine[a_pData - pCurrLine] = '\0';
+        }
+
         // end the line with a NULL
-        cRememberThis = *a_pData;
+        cEndOfLineChar = *a_pData;
         *a_pData = 0;
 
-        // see if we have found the tag
-        if (!IsLess(pLine, pTagName) && !IsLess(pTagName, pLine)) {
-            // null terminate the data before the newline of the previous line.
-            // If you want a new line at the end of the line then add an empty
-            // line before the tag.
-            --pLine;
-            if (*(pLine-1) == '\r') {
-                // handle Windows style newlines. This handles Unix newline files
-                // on Windows and Windows style newlines on Unix. \n\r
-                --pLine;
-            }
-            *pLine = 0;
+        // see if we have found the tag. This is done before checking for end 
+        // of the data, so that if we have the tag at the end of the data then
+        // the tag is removed correctly.
+        if (!IsLess(pDataLine, pTagName) && !IsLess(pTagName, pDataLine)) {
+            // the data (which ends at the end of the last line) needs to be 
+            // null-terminated BEFORE before the newline character(s). If the
+            // user wants a new line in the multi-line data then they need to
+            // add an empty line before the tag. 
+            *--pDataLine = '\0';
 
-            if (cRememberThis) {
-                ++a_pData;
+            // if we aren't at the end of the data, then move a_pData to 
+            // the start of the next line.
+            if (cEndOfLineChar) {
+                *a_pData = cEndOfLineChar;
+                SkipNewLine(a_pData);
             }
             return true;
         }
 
-        // otherwise put the char back and continue checking
-        if (!cRememberThis) {
-            return false;
+        // if we are at the end of the data then we just automatically end
+        // this entry and return the current data.
+        if (!cEndOfLineChar) {
+            return true;
         }
-        *a_pData++ = cRememberThis;
+
+        // otherwise we need to process this newline to ensure that it consists
+        // of just a single \n character.
+        pDataLine += (a_pData - pCurrLine);
+        *a_pData = cEndOfLineChar;
+        SkipNewLine(a_pData);
+        *pDataLine++ = '\n';
     }
 }
 
@@ -1779,17 +1832,18 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetAllKeys(
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
-    const char * a_pszFile
+    const char *    a_pszFile,
+    bool            a_bAddSignature
     )
 {
     FILE * fp = NULL;
 #if __STDC_WANT_SECURE_LIB__
-	fopen_s(&fp, a_pszFile, "wb");
+    fopen_s(&fp, a_pszFile, "wb");
 #else
-	fp = fopen(a_pszFile, "wb");
+    fp = fopen(a_pszFile, "wb");
 #endif
     if (!fp) return SI_FILE;
-    SI_Error rc = SaveFile(fp, true);
+    SI_Error rc = SaveFile(fp, a_bAddSignature);
     fclose(fp);
     return rc;
 }
@@ -1798,19 +1852,20 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
-    const SI_WCHAR_T * a_pwszFile
+    const SI_WCHAR_T *  a_pwszFile,
+    bool                a_bAddSignature
     )
 {
 #ifdef _WIN32
     FILE * fp = _wfopen(a_pwszFile, L"wb");
     if (!fp) return SI_FILE;
-    SI_Error rc = SaveFile(fp, true);
+    SI_Error rc = SaveFile(fp, a_bAddSignature);
     fclose(fp);
     return rc;
 #else // SI_CONVERT_ICU
     char szFile[256];
     u_austrncpy(szFile, a_pwszFile, sizeof(szFile));
-    return SaveFile(szFile);
+    return SaveFile(szFile, a_bAddSignature);
 #endif
 }
 #endif // SI_HAS_WIDE_FILE
@@ -1819,23 +1874,26 @@ template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
     FILE *  a_pFile,
-    bool    a_bUseBOM
+    bool    a_bAddSignature
     ) const
 {
     FileWriter writer(a_pFile);
-    if (m_bStoreIsUtf8 && a_bUseBOM) {
-        writer.Write(SI_BOM_UTF8);
-    }
-    return Save(writer);
+    return Save(writer, a_bAddSignature);
 }
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
-    OutputWriter & a_oOutput
+    OutputWriter &  a_oOutput,
+    bool            a_bAddSignature
     ) const
 {
     Converter convert(m_bStoreIsUtf8);
+
+    // add the UTF-8 signature if it is desired
+    if (m_bStoreIsUtf8 && a_bAddSignature) {
+        a_oOutput.Write(SI_UTF8_SIGNATURE);
+    }
 
     // get all of the sections sorted in load order
     TNamesDepend oSections;
@@ -1931,9 +1989,29 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
                 }
                 a_oOutput.Write("=");
                 if (m_bAllowMultiLine && IsMultiLineData(iValue->pItem)) {
+                    // multi-line data needs to be processed specially to ensure
+                    // that we use the correct newline format for the current system
                     a_oOutput.Write("<<<SI-END-OF-MULTILINE-TEXT" SI_NEWLINE_A);
-                    a_oOutput.Write(convert.Data());
-                    a_oOutput.Write(SI_NEWLINE_A "SI-END-OF-MULTILINE-TEXT");
+                    const SI_CHAR * pLine = iValue->pItem;
+                    const SI_CHAR * pEndOfLine;
+                    SI_CHAR cEndOfLineChar = *pLine;
+                    while (cEndOfLineChar) {
+                        // find the end of this line
+                        pEndOfLine = pLine;
+                        for (; *pEndOfLine && *pEndOfLine != '\n'; ++pEndOfLine) /*loop*/ ;
+                        cEndOfLineChar = *pEndOfLine;
+
+                        // temporarily null terminate, convert and output the line
+                        *const_cast<SI_CHAR*>(pEndOfLine) = 0;
+                        if (!convert.ConvertToStore(pLine)) {
+                            return SI_FAIL;
+                        }
+                        *const_cast<SI_CHAR*>(pEndOfLine) = cEndOfLineChar;
+                        pLine += (pEndOfLine - pLine) + 1;
+                        a_oOutput.Write(convert.Data());
+                        a_oOutput.Write(SI_NEWLINE_A);
+                    }
+                    a_oOutput.Write("SI-END-OF-MULTILINE-TEXT");
                 }
                 else {
                     a_oOutput.Write(convert.Data());
@@ -2058,7 +2136,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::DeleteString(
  */
 template<class SI_CHAR>
 struct SI_GenericCase {
-	bool operator()(const SI_CHAR * pLeft, const SI_CHAR * pRight) const {
+    bool operator()(const SI_CHAR * pLeft, const SI_CHAR * pRight) const {
         long cmp;
         for ( ;*pLeft && *pRight; ++pLeft, ++pRight) {
             cmp = (long) *pLeft - (long) *pRight;
@@ -2081,7 +2159,7 @@ struct SI_GenericNoCase {
     inline SI_CHAR locase(SI_CHAR ch) const {
         return (ch < 'A' || ch > 'Z') ? ch : (ch - 'A' + 'a');
     }
-	bool operator()(const SI_CHAR * pLeft, const SI_CHAR * pRight) const {
+    bool operator()(const SI_CHAR * pLeft, const SI_CHAR * pRight) const {
         long cmp;
         for ( ;*pLeft && *pRight; ++pLeft, ++pRight) {
             cmp = (long) locase(*pLeft) - (long) locase(*pRight);
@@ -2632,7 +2710,7 @@ public:
 #include <mbstring.h>
 template<class SI_CHAR>
 struct SI_NoCase {
-	bool operator()(const SI_CHAR * pLeft, const SI_CHAR * pRight) const {
+    bool operator()(const SI_CHAR * pLeft, const SI_CHAR * pRight) const {
         if (sizeof(SI_CHAR) == sizeof(char)) {
             return _mbsicmp((const unsigned char *)pLeft,
                 (const unsigned char *)pRight) < 0;

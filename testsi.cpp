@@ -196,18 +196,18 @@ TestFile(
 	fp = fopen("testsi-out-comment.ini", "wb");
 #endif
     if (fp) {
+        CSimpleIni::FileWriter writer(fp);
+        if (a_bIsUtf8) {
+            writer.Write(SI_UTF8_SIGNATURE);
+        }
+
         // add a string to the file in the correct text format
         CSimpleIni::Converter convert = ini.GetConverter();
         convert.ConvertToStore(_T("; output from testsi.cpp test program")
             SI_NEWLINE SI_NEWLINE);
-
-        CSimpleIni::FileWriter writer(fp);
-        if (a_bIsUtf8) {
-            writer.Write(SI_BOM_UTF8);
-        }
         writer.Write(convert.Data());
-        ini.Save(writer);
 
+        ini.Save(writer, false);
         fclose(fp);
     }
 

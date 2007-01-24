@@ -9,8 +9,11 @@
 # pragma warning(disable: 4786)
 #endif
 
-#ifndef _WIN32
+#ifdef _WIN32
+# define DELETE_FILE DeleteFileA
+#else
 # include <unistd.h>
+# define DELETE_FILE unlink
 #endif
 #include <fstream>
 
@@ -22,19 +25,19 @@ class Test
     std::string m_strTest;
 
 public:
-    Test(const char * a_pszName) 
-        : m_strTest(a_pszName) 
+    Test(const char * a_pszName)
+        : m_strTest(a_pszName)
     {
         printf("%s: test starting\n", m_strTest.c_str());
     }
 
-    bool Success() 
+    bool Success()
     {
         printf("%s: test succeeded\n", m_strTest.c_str());
         return false;
     }
 
-    bool Failure(const char * pszReason) 
+    bool Failure(const char * pszReason)
     {
         printf("%s: test FAILED (%s)\n", m_strTest.c_str(), pszReason);
         return false;
@@ -48,7 +51,7 @@ bool FileComparisonTest(const char * a_pszFile1, const char * a_pszFile2) {
 
         char szBuf[1024];
         FILE * fp = NULL;
-        
+
 #if __STDC_WANT_SECURE_LIB__
 		fopen_s(&fp, a_pszFile1, "rb");
 #else
@@ -97,9 +100,8 @@ bool FileLoadTest(const char * a_pszFile1, const char * a_pszFile2) {
         if (ini.SaveFile("test2.ini") < 0) throw "Save failed for file 2";
 
         b = FileComparisonTest("test1.ini", "test2.ini");
-        _unlink("test1.ini");
-        _unlink("test2.ini");
-
+        DELETE_FILE("test1.ini");
+        DELETE_FILE("test2.ini");
         if (!b) throw "File comparison failed in FileLoadTest";
     }
     catch (...) {
@@ -144,7 +146,7 @@ bool TestStreams()
     try {
         std::ofstream outfile;
         outfile.open(rgszTestFile[1], std::ofstream::out | std::ofstream::binary);
-        if (ini.Save(outfile) < 0) throw false;
+        if (ini.Save(outfile, true) < 0) throw false;
         outfile.close();
     }
     catch (...) {
