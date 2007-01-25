@@ -5,19 +5,19 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.1
+        <tr><th>Version     <td>4.2
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
 
-    @section INTRODUCTION
+    @section intro INTRODUCTION
 
     This component allows an INI-style configuration file to be used on both
     Windows and Linux/Unix. It is fast, simple and source code using this
     component will compile unchanged on either OS.
 
 
-    @section FEATURES
+    @section features FEATURES
 
     - MIT Licence allows free use in all software (including GPL and commercial)
     - multi-platform (Windows 95/98/ME/NT/2K/XP/2003, Windows CE, Linux, Unix)
@@ -45,7 +45,7 @@
         - Linux/gcc (-Wall)
 
 
-    @section USAGE SUMMARY
+    @section usage USAGE SUMMARY
 
     -#  Define the appropriate symbol for the converter you wish to use and
         include the SimpleIni.h header file. If no specific converter is defined
@@ -91,7 +91,7 @@
         </table>
     -# Call Save() or SaveFile() to save the INI configuration data
 
-    @section IO-STREAMS
+    @section iostreams IO STREAMS
 
     SimpleIni supports reading from and writing to STL IO streams. Enable this
     by defining SI_SUPPORT_IOSTREAMS before including the SimpleIni.h header
@@ -99,7 +99,7 @@
     ofstream) then the flag ios_base::binary has been used when the file was
     opened.
 
-    @section MULTI-LINE VALUES
+    @section multiline MULTI-LINE VALUES
 
     Values that span multiple lines are created using the following format.
 
@@ -117,11 +117,11 @@
     - The ending tag must be on it's own line with no whitespace before
       or after it.
     - The multi-line value is modified at load so that each line in the value
-      is delimited by a single '\n' character on all platforms. At save time
-      it will be converted into the newline format used by the current 
+      is delimited by a single '\\n' character on all platforms. At save time
+      it will be converted into the newline format used by the current
       platform.
 
-    @section COMMENTS
+    @section comments COMMENTS
 
     Comments are preserved in the file within the following restrictions:
     - Every file may have a single "file comment". It must start with the
@@ -140,7 +140,7 @@
       delete that entry and recreate it with the new comment. There is no
       way to change the file comment.
 
-    @section SAVE ORDER
+    @section save SAVE ORDER
 
     The sections and keys are written out in the same order as they were
     read in from the file. Sections and keys added to the data after the
@@ -148,7 +148,7 @@
     written. There is no way to specify the location of a section or key
     other than in first-created, first-saved order.
 
-    @section NOTES
+    @section notes NOTES
 
     - To load UTF-8 data on Windows 95, you need to use Microsoft Layer for
       Unicode, or SI_CONVERT_GENERIC, or SI_CONVERT_ICU.
@@ -165,7 +165,7 @@
       SI_NO_MBCS. This is defined automatically on Windows CE platforms.
 
 
-    @section MIT LICENCE
+    @section licence MIT LICENCE
 
     The licence text below is the boilerplate "MIT Licence" used from:
     http://www.opensource.org/licenses/mit-license.php
@@ -297,9 +297,9 @@ public:
         { }
         Entry(const Entry & rhs) { operator=(rhs); }
         Entry & operator=(const Entry & rhs) {
-            pItem     = rhs.pItem;
+            pItem    = rhs.pItem;
             pComment = rhs.pComment;
-            nOrder     = rhs.nOrder;
+            nOrder   = rhs.nOrder;
             return *this;
         }
 
@@ -426,7 +426,6 @@ public:
 
 public:
     /*-----------------------------------------------------------------------*/
-    /** @{ @name Construction and Settings */
 
     /** Default constructor.
 
@@ -445,6 +444,9 @@ public:
 
     /** Deallocate all memory stored by this object */
     void Reset();
+
+    /*-----------------------------------------------------------------------*/
+    /** @{ @name Settings */
 
     /** Set the storage format of the INI data. This affects both the loading
         and saving of the INI data using all of the Load/Save API functions.
@@ -590,7 +592,7 @@ public:
                             current platform.
 
         @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is
-                            in UTF-8 format. If it is not UTF-8 then 
+                            in UTF-8 format. If it is not UTF-8 then
                             this parameter is ignored.
 
         @return SI_Error    See error definitions
@@ -598,7 +600,7 @@ public:
     SI_Error SaveFile(
         const char *    a_pszFile,
         bool            a_bAddSignature = true
-        );
+        ) const;
 
 #ifdef SI_HAS_WIDE_FILE
     /** Save an INI file from memory to disk
@@ -606,7 +608,7 @@ public:
         @param a_pwszFile   Path of the file to be saved in UTF-16.
 
         @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is
-                            in UTF-8 format. If it is not UTF-8 then 
+                            in UTF-8 format. If it is not UTF-8 then
                             this parameter is ignored.
 
         @return SI_Error    See error definitions
@@ -614,15 +616,15 @@ public:
     SI_Error SaveFile(
         const SI_WCHAR_T *  a_pwszFile,
         bool                a_bAddSignature = true
-        );
+        ) const;
 #endif // _WIN32
 
-    /** Save the INI data to a file. See Save() for details. 
-     
+    /** Save the INI data to a file. See Save() for details.
+
         @param a_pFile      Handle to a file. File should be opened for
                             binary output.
 
-        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in 
+        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in
                             UTF-8 format. If it is not UTF-8 then this value is
                             ignored. Do not set this to true if anything has
                             already been written to the file.
@@ -658,7 +660,7 @@ public:
 
         @param a_oOutput    Output writer to write the data to.
 
-        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in 
+        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in
                             UTF-8 format. If it is not UTF-8 then this value is
                             ignored. Do not set this to true if anything has
                             already been written to the OutputWriter.
@@ -675,7 +677,7 @@ public:
 
         @param a_ostream    String to have the INI data appended to.
 
-        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in 
+        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in
                             UTF-8 format. If it is not UTF-8 then this value is
                             ignored. Do not set this to true if anything has
                             already been written to the stream.
@@ -696,7 +698,7 @@ public:
 
         @param a_sBuffer    String to have the INI data appended to.
 
-        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in 
+        @param a_bAddSignature  Prepend the UTF-8 BOM if the output data is in
                             UTF-8 format. If it is not UTF-8 then this value is
                             ignored. Do not set this to true if anything has
                             already been written to the string.
@@ -715,6 +717,93 @@ public:
     /*-----------------------------------------------------------------------*/
     /** @}
         @{ @name Accessing INI Data */
+
+    /** Retrieve all section names. The list is returned as an STL vector of
+        names and can be iterated or searched as necessary. Note that the
+        collation order of the returned strings is NOT DEFINED.
+
+        NOTE! This structure contains only pointers to strings. The actual
+        string data is stored in memory owned by CSimpleIni. Ensure that the
+        CSimpleIni object is not destroyed or Reset() while these pointers
+        are in use!
+
+        @param a_names          Vector that will receive all of the section
+                                names. See note above!
+     */
+    void GetAllSections(
+        TNamesDepend & a_names
+        ) const;
+
+    /** Retrieve all unique key names in a section. The collation order of the
+        returned strings is NOT DEFINED. Only unique key names are returned.
+
+        NOTE! This structure contains only pointers to strings. The actual
+        string data is stored in memory owned by CSimpleIni. Ensure that the
+        CSimpleIni object is not destroyed or Reset() while these strings
+        are in use!
+
+        @param a_pSection       Section to request data for
+        @param a_names          List that will receive all of the key
+                                names. See note above!
+
+        @return true            Section was found.
+        @return false           Matching section was not found.
+     */
+    bool GetAllKeys(
+        const SI_CHAR * a_pSection,
+        TNamesDepend &  a_names
+        ) const;
+
+    /** Retrieve all values for a specific key. This method can be used when
+        multiple keys are both enabled and disabled.
+
+        NOTE! The returned values are pointers to string data stored in memory
+        owned by CSimpleIni. Ensure that the CSimpleIni object is not destroyed
+        or Reset while you are using this pointer!
+
+        @param a_pSection       Section to search
+        @param a_pKey           Key to search for
+        @param a_values         List to return if the key is not found
+
+        @return true            Key was found.
+        @return false           Matching section/key was not found.
+     */
+    bool GetAllValues(
+        const SI_CHAR * a_pSection,
+        const SI_CHAR * a_pKey,
+        TNamesDepend &  a_values
+        ) const;
+
+    /** Query the number of keys in a specific section. Note that if multiple
+        keys are enabled, then this value may be different to the number of
+        keys returned by GetAllKeys.
+
+        @param a_pSection       Section to request data for
+
+        @return -1              Section does not exist in the file
+        @return >=0             Number of keys in the section
+     */
+    int GetSectionSize(
+        const SI_CHAR * a_pSection
+        ) const;
+
+    /** Retrieve all key and value pairs for a section. The data is returned
+        as a pointer to an STL map and can be iterated or searched as
+        desired. Note that multiple entries for the same key may exist when
+        multiple keys have been enabled.
+
+        NOTE! This structure contains only pointers to strings. The actual
+        string data is stored in memory owned by CSimpleIni. Ensure that the
+        CSimpleIni object is not destroyed or Reset() while these strings
+        are in use!
+
+        @param a_pSection       Name of the section to return
+        @return boolean         Was a section matching the supplied
+                                name found.
+     */
+    const TKeyVal * GetSection(
+        const SI_CHAR * a_pSection
+        ) const;
 
     /** Retrieve the value for a specific key. If multiple keys are enabled
         (see SetMultiKey) then only the first value associated with that key
@@ -738,26 +827,6 @@ public:
         const SI_CHAR * a_pKey,
         const SI_CHAR * a_pDefault     = NULL,
         bool *          a_pHasMultiple = NULL
-        ) const;
-
-    /** Retrieve all values for a specific key. This method can be used when
-        multiple keys are both enabled and disabled.
-
-        NOTE! The returned values are pointers to string data stored in memory
-        owned by CSimpleIni. Ensure that the CSimpleIni object is not destroyed
-        or Reset while you are using this pointer!
-
-        @param a_pSection       Section to search
-        @param a_pKey           Key to search for
-        @param a_values         List to return if the key is not found
-
-        @return a_pDefault      Key was not found in the section
-        @return other           Value of the key
-     */
-    bool GetAllValues(
-        const SI_CHAR * a_pSection,
-        const SI_CHAR * a_pKey,
-        TNamesDepend &  a_values
         ) const;
 
     /** Add or update a section or value. This will always insert
@@ -816,70 +885,6 @@ public:
         const SI_CHAR * a_pKey,
         bool            a_bRemoveEmpty = false
         );
-
-    /** Query the number of keys in a specific section. Note that if multiple
-        keys are enabled, then this value may be different to the number of
-        keys returned by GetAllKeys.
-
-        @param a_pSection       Section to request data for
-
-        @return -1              Section does not exist in the file
-        @return >=0             Number of keys in the section
-     */
-    int GetSectionSize(
-        const SI_CHAR * a_pSection
-        ) const;
-
-    /** Retrieve all key and value pairs for a section. The data is returned
-        as a pointer to an STL map and can be iterated or searched as
-        desired. Note that multiple entries for the same key may exist when
-        multiple keys have been enabled.
-
-        NOTE! This structure contains only pointers to strings. The actual
-        string data is stored in memory owned by CSimpleIni. Ensure that the
-        CSimpleIni object is not destroyed or Reset() while these strings
-        are in use!
-
-        @param a_pSection       Name of the section to return
-        @return boolean         Was a section matching the supplied
-                                name found.
-     */
-    const TKeyVal * GetSection(
-        const SI_CHAR * a_pSection
-        ) const;
-
-    /** Retrieve all section names. The list is returned as an STL vector of
-        names and can be iterated or searched as necessary. Note that the
-        collation order of the returned strings is NOT DEFINED.
-
-        NOTE! This structure contains only pointers to strings. The actual
-        string data is stored in memory owned by CSimpleIni. Ensure that the
-        CSimpleIni object is not destroyed or Reset() while these pointers
-        are in use!
-
-        @param a_names          Vector that will receive all of the section
-                                names. See note above!
-     */
-    void GetAllSections(
-        TNamesDepend & a_names
-        ) const;
-
-    /** Retrieve all unique key names in a section. The collation order of the
-        returned strings is NOT DEFINED. Only unique key names are returned.
-
-        NOTE! This structure contains only pointers to strings. The actual
-        string data is stored in memory owned by CSimpleIni. Ensure that the
-        CSimpleIni object is not destroyed or Reset() while these strings
-        are in use!
-
-        @param a_pSection       Section to request data for
-        @param a_names          List that will receive all of the key
-                                names. See note above!
-     */
-    void GetAllKeys(
-        const SI_CHAR * a_pSection,
-        TNamesDepend &  a_names
-        ) const;
 
     /*-----------------------------------------------------------------------*/
     /** @}
@@ -971,8 +976,19 @@ private:
 
     bool IsMultiLineTag(const SI_CHAR * a_pData) const;
     bool IsMultiLineData(const SI_CHAR * a_pData) const;
-    bool FindMultiLine(SI_CHAR *& a_pData, const SI_CHAR *& a_pVal) const;
+    bool LoadMultiLineText(
+        SI_CHAR *&          a_pData, 
+        const SI_CHAR *&    a_pVal,
+        const SI_CHAR *     a_pTagName,
+        bool                a_bAllowBlankLinesInComment = false
+        ) const;
     bool IsNewLineChar(SI_CHAR a_c) const;
+
+    bool OutputMultiLineText(
+        OutputWriter &  a_oOutput,
+        Converter &     a_oConverter,
+        const SI_CHAR * a_pText
+        ) const;
 
 private:
     /** Copy of the INI file data in our character format. This will be
@@ -1186,7 +1202,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Load(
     const SI_CHAR * pVal = NULL;
     const SI_CHAR * pComment = NULL;
 
-    // We copy the strings if we are loading data into this class when we 
+    // We copy the strings if we are loading data into this class when we
     // already have stored some.
     bool bCopyStrings = (m_pData != NULL);
 
@@ -1243,26 +1259,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindFileComment(
         return SI_OK;
     }
 
-    // the file comment must start at the first character of the first line
-    if (!IsComment(*a_pData)) {
+    // Load the file comment as multi-line text, this will modify all of
+    // the newline characters to be single \n chars
+    if (!LoadMultiLineText(a_pData, m_pFileComment, NULL, false)) {
         return SI_OK;
     }
-
-    // There is a file comment. We now need to find the end of the comment.
-    // A file comment ends at the first non-comment line. Every comment line
-    // MUST start with a comment character (no blank lines, no whitespace)
-    SI_CHAR * pLastNewLine = NULL;
-    m_pFileComment = a_pData;
-    while (IsComment(*a_pData)) {
-        while (*a_pData && !IsNewLineChar(*a_pData)) {
-            ++a_pData;
-        }
-        pLastNewLine = a_pData;
-        SkipNewLine(a_pData);
-    }
-
-    // null terminate before the last newline
-    *pLastNewLine = 0;
 
     // copy the string if necessary
     if (a_bCopyStrings) {
@@ -1285,11 +1286,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindEntry(
 {
     a_pComment = NULL;
 
-    SI_CHAR * pLineStart = NULL;
     SI_CHAR * pTrail = NULL;
     while (*a_pData) {
-        pLineStart = a_pData;
-
         // skip spaces and empty lines
         while (*a_pData && IsSpace(*a_pData)) {
             ++a_pData;
@@ -1301,22 +1299,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindEntry(
         // skip processing of comment lines but keep a pointer to
         // the start of the comment.
         if (IsComment(*a_pData)) {
-            if (!a_pComment) {
-                a_pComment = a_pData;
-            }
-            while (*a_pData && !IsNewLineChar(*a_pData)) {
-                ++a_pData;
-            }
+            LoadMultiLineText(a_pData, a_pComment, NULL, true);
             continue;
-        }
-
-        // if we have been tracking comments then we now end it in preparation
-        // for an item. The pointer pLineStart will point to the newline
-        // character at the end of the last comment line.
-        if (a_pComment) {
-            SI_ASSERT(pLineStart > a_pComment && IsNewLineChar(*pLineStart));
-            *pLineStart = 0;
-            pLineStart = NULL; // used only for comment lines
         }
 
         // process section names
@@ -1411,7 +1395,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindEntry(
 
         // check for multi-line entries
         if (m_bAllowMultiLine && IsMultiLineTag(a_pVal)) {
-            return FindMultiLine(a_pData, a_pVal);
+            // skip the "<<<" to get the tag that will end the multiline
+            const SI_CHAR * pTagName = a_pVal + 3;
+            return LoadMultiLineText(a_pData, a_pVal, pTagName);
         }
 
         // return the standard entry
@@ -1482,34 +1468,67 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::IsNewLineChar(
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 bool
-CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindMultiLine(
+CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadMultiLineText(
     SI_CHAR *&          a_pData,
-    const SI_CHAR *&    a_pVal
+    const SI_CHAR *&    a_pVal,
+    const SI_CHAR *     a_pTagName,
+    bool                a_bAllowBlankLinesInComment
     ) const
 {
-    // The multiline tag is passed into this function with the "<<<TAG" entry in
-    // a_pVal and a_pData pointing to the first line following this tag.
-
-    // skip the "<<<" to get the tag that will end the multiline
-    const SI_CHAR * pTagName = a_pVal + 3;
-    a_pVal = a_pData; // real value starts on next line
-
     // we modify this data to strip all newlines down to a single '\n'
     // character. This means that on Windows we need to strip out some
-    // characters which will make the data shorter. 
+    // characters which will make the data shorter.
     // i.e.  LINE1-LINE1\r\nLINE2-LINE2\0 will become
-    //       LINE1-LINE1\nLINE2-LINE2\0 
-    // The pDataLine entry is the pointer to the location in memory that 
-    // the current line needs to start to run following the existing one. 
+    //       LINE1-LINE1\nLINE2-LINE2\0
+    // The pDataLine entry is the pointer to the location in memory that
+    // the current line needs to start to run following the existing one.
     // This may be the same as pCurrLine in which case no move is needed.
     SI_CHAR * pDataLine = a_pData;
     SI_CHAR * pCurrLine;
 
+    // value starts at the current line
+    a_pVal = a_pData; 
+
     // find the end tag. This tag must start in column 1 and be
     // followed by a newline. No whitespace removal is done while
     // searching for this tag.
-    SI_CHAR cEndOfLineChar;
+    SI_CHAR cEndOfLineChar = *a_pData;
     for(;;) {
+        // if we are loading comments then we need a comment character as 
+        // the first character on every line
+        if (!a_pTagName && !IsComment(*a_pData)) {
+            // if we aren't allowing blank lines then we're done
+            if (!a_bAllowBlankLinesInComment) {
+                break;
+            }
+
+            // if we are allowing blank lines then we only include them
+            // in this comment if another comment follows, so read ahead
+            // to find out.
+            SI_CHAR * pCurr = a_pData;
+            int nNewLines = 0;
+            while (IsSpace(*pCurr)) {
+                if (IsNewLineChar(*pCurr)) {
+                    ++nNewLines;
+                    SkipNewLine(pCurr);
+                }
+                else {
+                    ++pCurr;
+                }
+            }
+
+            // we have a comment, add the blank lines to the output
+            // and continue processing from here
+            if (IsComment(*pCurr)) {
+                for (; nNewLines > 0; --nNewLines) *pDataLine++ = '\n';
+                a_pData = pCurr;
+                continue;
+            }
+
+            // the comment ends here
+            break;
+        }
+
         // find the end of this line
         pCurrLine = a_pData;
         while (*a_pData && !IsNewLineChar(*a_pData)) ++a_pData;
@@ -1524,23 +1543,13 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindMultiLine(
         cEndOfLineChar = *a_pData;
         *a_pData = 0;
 
-        // see if we have found the tag. This is done before checking for end 
-        // of the data, so that if we have the tag at the end of the data then
-        // the tag is removed correctly.
-        if (!IsLess(pDataLine, pTagName) && !IsLess(pTagName, pDataLine)) {
-            // the data (which ends at the end of the last line) needs to be 
-            // null-terminated BEFORE before the newline character(s). If the
-            // user wants a new line in the multi-line data then they need to
-            // add an empty line before the tag. 
-            *--pDataLine = '\0';
-
-            // if we aren't at the end of the data, then move a_pData to 
-            // the start of the next line.
-            if (cEndOfLineChar) {
-                *a_pData = cEndOfLineChar;
-                SkipNewLine(a_pData);
-            }
-            return true;
+        // if are looking for a tag then do the check now. This is done before 
+        // checking for end of the data, so that if we have the tag at the end 
+        // of the data then the tag is removed correctly.
+        if (a_pTagName && 
+            (!IsLess(pDataLine, a_pTagName) && !IsLess(a_pTagName, pDataLine))) 
+        {
+            break;
         }
 
         // if we are at the end of the data then we just automatically end
@@ -1556,6 +1565,28 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindMultiLine(
         SkipNewLine(a_pData);
         *pDataLine++ = '\n';
     }
+
+    // if we didn't find a comment at all then return false
+    if (a_pVal == a_pData) {
+        a_pVal = NULL;
+        return false;
+    }
+
+    // the data (which ends at the end of the last line) needs to be
+    // null-terminated BEFORE before the newline character(s). If the
+    // user wants a new line in the multi-line data then they need to
+    // add an empty line before the tag.
+    *--pDataLine = '\0';
+
+    // if looking for a tag and if we aren't at the end of the data, 
+    // then move a_pData to the start of the next line.
+    if (a_pTagName && cEndOfLineChar) {
+        SI_ASSERT(IsNewLineChar(cEndOfLineChar));
+        *a_pData = cEndOfLineChar;
+        SkipNewLine(a_pData);
+    }
+
+    return true;
 }
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
@@ -1627,7 +1658,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
             oKey.pComment = a_pComment;
         }
         typename TSection::value_type oEntry(oKey, TKeyVal());
-        std::pair<TSection::iterator,bool> i =
+        typedef typename TSection::iterator SectionIterator;
+        std::pair<SectionIterator,bool> i =
             m_data.insert(oEntry);
         iSection = i.first;
         bInserted = true;
@@ -1803,19 +1835,19 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetAllSections(
 }
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
-void
+bool
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetAllKeys(
     const SI_CHAR * a_pSection,
     TNamesDepend &  a_names
     ) const
 {
     if (!a_pSection) {
-        return;
+        return false;
     }
 
     typename TSection::const_iterator iSection = m_data.find(a_pSection);
     if (iSection == m_data.end()) {
-        return;
+        return false;
     }
 
     const TKeyVal & section = iSection->second;
@@ -1827,6 +1859,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetAllKeys(
             pLastKey = iKeyVal->first.pItem;
         }
     }
+
+    return true;
 }
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
@@ -1834,7 +1868,7 @@ SI_Error
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
     const char *    a_pszFile,
     bool            a_bAddSignature
-    )
+    ) const
 {
     FILE * fp = NULL;
 #if __STDC_WANT_SECURE_LIB__
@@ -1854,7 +1888,7 @@ SI_Error
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
     const SI_WCHAR_T *  a_pwszFile,
     bool                a_bAddSignature
-    )
+    ) const
 {
 #ifdef _WIN32
     FILE * fp = _wfopen(a_pwszFile, L"wb");
@@ -1901,17 +1935,15 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
 #if defined(_MSC_VER) && _MSC_VER <= 1200
     oSections.sort();
 #else
-    oSections.sort(Entry::LoadOrder());
+    oSections.sort(typename Entry::LoadOrder());
 #endif
 
     // write the file comment if we have one
     bool bNeedNewLine = false;
     if (m_pFileComment) {
-        if (!convert.ConvertToStore(m_pFileComment)) {
+        if (!OutputMultiLineText(a_oOutput, convert, m_pFileComment)) {
             return SI_FAIL;
         }
-        a_oOutput.Write(convert.Data());
-        a_oOutput.Write(SI_NEWLINE_A);
         bNeedNewLine = true;
     }
 
@@ -1955,7 +1987,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
 #if defined(_MSC_VER) && _MSC_VER <= 1200
         oKeys.sort();
 #else
-        oKeys.sort(Entry::LoadOrder());
+        oKeys.sort(typename Entry::LoadOrder());
 #endif
 
         // write all keys and values
@@ -1967,12 +1999,10 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
 
             // write out the comment if there is one
             if (iKey->pComment) {
-                if (!convert.ConvertToStore(iKey->pComment)) {
+                a_oOutput.Write(SI_NEWLINE_A);
+                if (!OutputMultiLineText(a_oOutput, convert, iKey->pComment)) {
                     return SI_FAIL;
                 }
-                a_oOutput.Write(SI_NEWLINE_A);
-                a_oOutput.Write(convert.Data());
-                a_oOutput.Write(SI_NEWLINE_A);
             }
 
             typename TNamesDepend::const_iterator iValue = oValues.begin();
@@ -1992,24 +2022,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
                     // multi-line data needs to be processed specially to ensure
                     // that we use the correct newline format for the current system
                     a_oOutput.Write("<<<SI-END-OF-MULTILINE-TEXT" SI_NEWLINE_A);
-                    const SI_CHAR * pLine = iValue->pItem;
-                    const SI_CHAR * pEndOfLine;
-                    SI_CHAR cEndOfLineChar = *pLine;
-                    while (cEndOfLineChar) {
-                        // find the end of this line
-                        pEndOfLine = pLine;
-                        for (; *pEndOfLine && *pEndOfLine != '\n'; ++pEndOfLine) /*loop*/ ;
-                        cEndOfLineChar = *pEndOfLine;
-
-                        // temporarily null terminate, convert and output the line
-                        *const_cast<SI_CHAR*>(pEndOfLine) = 0;
-                        if (!convert.ConvertToStore(pLine)) {
-                            return SI_FAIL;
-                        }
-                        *const_cast<SI_CHAR*>(pEndOfLine) = cEndOfLineChar;
-                        pLine += (pEndOfLine - pLine) + 1;
-                        a_oOutput.Write(convert.Data());
-                        a_oOutput.Write(SI_NEWLINE_A);
+                    if (!OutputMultiLineText(a_oOutput, convert, iValue->pItem)) {
+                        return SI_FAIL;
                     }
                     a_oOutput.Write("SI-END-OF-MULTILINE-TEXT");
                 }
@@ -2024,6 +2038,35 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
     }
 
     return SI_OK;
+}
+
+template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
+bool
+CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::OutputMultiLineText(
+    OutputWriter &  a_oOutput,
+    Converter &     a_oConverter,
+    const SI_CHAR * a_pText
+    ) const
+{
+    const SI_CHAR * pEndOfLine;
+    SI_CHAR cEndOfLineChar = *a_pText;
+    while (cEndOfLineChar) {
+        // find the end of this line
+        pEndOfLine = a_pText;
+        for (; *pEndOfLine && *pEndOfLine != '\n'; ++pEndOfLine) /*loop*/ ;
+        cEndOfLineChar = *pEndOfLine;
+
+        // temporarily null terminate, convert and output the line
+        *const_cast<SI_CHAR*>(pEndOfLine) = 0;
+        if (!a_oConverter.ConvertToStore(a_pText)) {
+            return false;
+        }
+        *const_cast<SI_CHAR*>(pEndOfLine) = cEndOfLineChar;
+        a_pText += (pEndOfLine - a_pText) + 1;
+        a_oOutput.Write(a_oConverter.Data());
+        a_oOutput.Write(SI_NEWLINE_A);
+    }
+    return true;
 }
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>

@@ -3,7 +3,7 @@
 #---------------------------------------------------------------------------
 # Project related configuration options
 #---------------------------------------------------------------------------
-PROJECT_NAME           = SimpleINI
+PROJECT_NAME           = SimpleIni
 PROJECT_NUMBER         = 
 OUTPUT_DIRECTORY       = D:/src/simpleini-doc
 CREATE_SUBDIRS         = NO
