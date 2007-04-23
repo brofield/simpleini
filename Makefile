@@ -4,6 +4,8 @@ CPPFLAGS=-Wall
 
 OBJ=testsi.o test1.o snippets.o ConvertUTF.o
 
+testsi.o test1.o snippets.o : SimpleIni.h
+
 testsi: $(OBJ)
 	g++ -o testsi -lstdc++ $(OBJ)
 

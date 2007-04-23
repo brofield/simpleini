@@ -17,7 +17,7 @@
 #define SI_SUPPORT_IOSTREAMS
 #include "SimpleIni.h"
 
-bool 
+bool
 snippets(
     const char *    a_pszFile,
     bool            a_bIsUtf8,
@@ -50,21 +50,21 @@ snippets(
     // GETTING VALUES
 
     // get the value of a key
-    const char * pszValue = ini.GetValue("section-name", 
+    const char * pszValue = ini.GetValue("section-name",
         "key-name", NULL /*default*/);
 
-    // get the value of a key which may have multiple 
-    // values. If bHasMultipleValues is true, then just 
+    // get the value of a key which may have multiple
+    // values. If bHasMultipleValues is true, then just
     // one value has been returned
     bool bHasMultipleValues;
-    pszValue = ini.GetValue("section-name", "key-name", 
+    pszValue = ini.GetValue("section-name", "key-name",
         NULL /*default*/, &bHasMultipleValues);
 
     // get all values of a key with multiple values
     CSimpleIniA::TNamesDepend values;
     ini.GetAllValues("section-name", "key-name", values);
 
-    // sort the values into the original load order 
+    // sort the values into the original load order
 #if defined(_MSC_VER) && _MSC_VER <= 1200
     /** STL of VC6 doesn't allow me to specify my own comparator for list::sort() */
     values.sort();
@@ -74,7 +74,7 @@ snippets(
 
     // output all of the items
     CSimpleIniA::TNamesDepend::const_iterator i;
-    for (i = values.begin(); i != values.end(); ++i) { 
+    for (i = values.begin(); i != values.end(); ++i) {
         printf("key-name = '%s'\n", i->pItem);
     }
 
@@ -83,27 +83,27 @@ snippets(
     // adding a new section
     rc = ini.SetValue("new-section", NULL, NULL);
     if (rc < 0) return false;
-    printf("section: %s\n", rc == SI_INSERTED ? 
+    printf("section: %s\n", rc == SI_INSERTED ?
         "inserted" : "updated");
 
-    // adding a new key ("new-section" will be added 
+    // adding a new key ("new-section" will be added
     // automatically if it doesn't already exist.
     rc = ini.SetValue("new-section", "new-key", "value");
     if (rc < 0) return false;
-    printf("key: %s\n", rc == SI_INSERTED ? 
+    printf("key: %s\n", rc == SI_INSERTED ?
         "inserted" : "updated");
 
     // changing the value of a key
     rc = ini.SetValue("section", "key", "updated-value");
     if (rc < 0) return false;
-    printf("key: %s\n", rc == SI_INSERTED ? 
+    printf("key: %s\n", rc == SI_INSERTED ?
         "inserted" : "updated");
 
     // DELETING DATA
 
     // deleting a key from a section. Optionally the entire
     // section may be deleted if it is now empty.
-    ini.Delete("section-name", "key-name", 
+    ini.Delete("section-name", "key-name",
         true /*delete the section if empty*/);
 
     // deleting an entire section and all keys in it

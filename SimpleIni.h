@@ -646,9 +646,9 @@ public:
             <tr><td>other       <td>UTF-8
         </table>
 
-        Note that comments, etc from the original data are not preserved. Only
-        valid data contents stored in the file are written out. The order of
-        the sections and values from the original file will be preserved.
+        Note that comments from the original data is preserved as per the
+        documentation on comments. The order of the sections and values
+        from the original file will be preserved.
 
         Any data prepended or appended to the output device must use the the
         same format (MBCS or UTF-8). You may use the GetConverter() method to
@@ -977,7 +977,7 @@ private:
     bool IsMultiLineTag(const SI_CHAR * a_pData) const;
     bool IsMultiLineData(const SI_CHAR * a_pData) const;
     bool LoadMultiLineText(
-        SI_CHAR *&          a_pData, 
+        SI_CHAR *&          a_pData,
         const SI_CHAR *&    a_pVal,
         const SI_CHAR *     a_pTagName,
         bool                a_bAllowBlankLinesInComment = false
@@ -1487,14 +1487,14 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadMultiLineText(
     SI_CHAR * pCurrLine;
 
     // value starts at the current line
-    a_pVal = a_pData; 
+    a_pVal = a_pData;
 
     // find the end tag. This tag must start in column 1 and be
     // followed by a newline. No whitespace removal is done while
     // searching for this tag.
     SI_CHAR cEndOfLineChar = *a_pData;
     for(;;) {
-        // if we are loading comments then we need a comment character as 
+        // if we are loading comments then we need a comment character as
         // the first character on every line
         if (!a_pTagName && !IsComment(*a_pData)) {
             // if we aren't allowing blank lines then we're done
@@ -1543,11 +1543,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadMultiLineText(
         cEndOfLineChar = *a_pData;
         *a_pData = 0;
 
-        // if are looking for a tag then do the check now. This is done before 
-        // checking for end of the data, so that if we have the tag at the end 
+        // if are looking for a tag then do the check now. This is done before
+        // checking for end of the data, so that if we have the tag at the end
         // of the data then the tag is removed correctly.
-        if (a_pTagName && 
-            (!IsLess(pDataLine, a_pTagName) && !IsLess(a_pTagName, pDataLine))) 
+        if (a_pTagName &&
+            (!IsLess(pDataLine, a_pTagName) && !IsLess(a_pTagName, pDataLine)))
         {
             break;
         }
@@ -1578,7 +1578,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadMultiLineText(
     // add an empty line before the tag.
     *--pDataLine = '\0';
 
-    // if looking for a tag and if we aren't at the end of the data, 
+    // if looking for a tag and if we aren't at the end of the data,
     // then move a_pData to the start of the next line.
     if (a_pTagName && cEndOfLineChar) {
         SI_ASSERT(IsNewLineChar(cEndOfLineChar));
