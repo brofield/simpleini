@@ -10,6 +10,8 @@ Global
 		Release = Release
 		Release Unicode = Release Unicode
 	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{C23240A6-AA9D-4827-AF06-C98E97CA6DFB}.Debug.ActiveCfg = Debug|Win32
 		{C23240A6-AA9D-4827-AF06-C98E97CA6DFB}.Debug.Build.0 = Debug|Win32
