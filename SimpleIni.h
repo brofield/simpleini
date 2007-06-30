@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.2
+        <tr><th>Version     <td>4.3
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -1535,8 +1535,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadMultiLineText(
 
         // move this line down to the location that it should be if necessary
         if (pDataLine < pCurrLine) {
-            memmove(pDataLine, pCurrLine, a_pData - pCurrLine);
-            pDataLine[a_pData - pCurrLine] = '\0';
+            size_t nLen = (size_t) (a_pData - pCurrLine);
+            memmove(pDataLine, pCurrLine, nLen * sizeof(SI_CHAR));
+            pDataLine[nLen] = '\0';
         }
 
         // end the line with a NULL
