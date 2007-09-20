@@ -1108,7 +1108,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
 {
 #ifdef _WIN32
     FILE * fp = NULL;
-#if __STDC_WANT_SECURE_LIB__
+#if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
     _wfopen_s(&fp, a_pwszFile, L"rb");
 #else
     fp = _wfopen(a_pwszFile, L"rb");
