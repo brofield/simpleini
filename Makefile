@@ -1,17 +1,26 @@
-CC=gcc
+CC=g++
 CFLAGS=-Wall
 CPPFLAGS=-Wall
 
-OBJ=testsi.o test1.o snippets.o ConvertUTF.o
+OBJS=testsi.o test1.o snippets.o ConvertUTF.o
 
-testsi.o test1.o snippets.o : SimpleIni.h
+help:
+	@echo This makefile is just for the test program \(use \"make clean all test\"\)
+	@echo Just include the SimpleIni.h header file to use it.
+	
+all: $(OBJS)
+	$(CC) -o testsi $(OBJS)
 
-testsi: $(OBJ)
-	g++ -o testsi -lstdc++ $(OBJ)
+
 
 clean:
-	rm -f testsi $(OBJ)
+	rm -f core *.o testsi
 
 data:
 	sed 's/\r\n$$/\n/g' < test1-expected.ini > unix.out
 	mv unix.out test1-expected.ini
+
+install:
+	@echo No install required. Just include the SimpleIni.h header file to use it.
+
+testsi.o test1.o snippets.o : SimpleIni.h
