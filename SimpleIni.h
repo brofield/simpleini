@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.4
+        <tr><th>Version     <td>4.5
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -193,6 +193,10 @@
 #ifndef INCLUDED_SimpleIni_h
 #define INCLUDED_SimpleIni_h
 
+#if defined(_MSC_VER) && (_MSC_VER >= 1020)
+# pragma once
+#endif
+
 // Disable these warnings in MSVC:
 //  4127 "conditional expression is constant" as the conversion classes trigger
 //  it with the statement if (sizeof(SI_CHAR) == sizeof(char)). This test will
@@ -203,6 +207,7 @@
 //  4786 "identifier truncated to 256 characters" as this is thrown hundreds
 //  of times VC6 as soon as STL is used.
 #ifdef _MSC_VER
+# pragma warning (push)
 # pragma warning (disable: 4127 4503 4702 4786)
 #endif
 
@@ -217,7 +222,9 @@
 #endif // SI_SUPPORT_IOSTREAMS
 
 #ifdef _DEBUG
-# include <assert.h>
+# ifndef assert
+#  include <cassert>
+# endif
 # define SI_ASSERT(x)   assert(x)
 #else
 # define SI_ASSERT(x)
@@ -2922,6 +2929,10 @@ typedef CSimpleIniTempl<wchar_t,
 # define CSimpleIniCase  CSimpleIniCaseA
 # define SI_NEWLINE      SI_NEWLINE_A
 #endif // _UNICODE
+
+#ifdef _MSC_VER
+# pragma warning (pop)
+#endif
 
 #endif // INCLUDED_SimpleIni_h
 
