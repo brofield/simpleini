@@ -1147,6 +1147,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     if (lSize < 0) {
         return SI_FILE;
     }
+    if (lSize == 0) {
+        return SI_OK;
+    }
     char * pData = new char[lSize];
     if (!pData) {
         return SI_NOMEM;
@@ -1172,6 +1175,10 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Load(
     )
 {
     SI_CONVERTER converter(m_bStoreIsUtf8);
+
+    if (a_uDataLen == 0) {
+        return SI_OK;
+    }
 
     // consume the UTF-8 BOM if it exists
     if (m_bStoreIsUtf8 && a_uDataLen >= 3) {
