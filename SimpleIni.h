@@ -1093,11 +1093,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     )
 {
     FILE * fp = NULL;
-#if __STDC_WANT_SECURE_LIB__
+#if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
     fopen_s(&fp, a_pszFile, "rb");
-#else
+#else // !__STDC_WANT_SECURE_LIB__
     fp = fopen(a_pszFile, "rb");
-#endif
+#endif // __STDC_WANT_SECURE_LIB__
     if (!fp) {
         return SI_FILE;
     }
@@ -1117,18 +1117,18 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     FILE * fp = NULL;
 #if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
     _wfopen_s(&fp, a_pwszFile, L"rb");
-#else
+#else // !__STDC_WANT_SECURE_LIB__
     fp = _wfopen(a_pwszFile, L"rb");
-#endif
+#endif // __STDC_WANT_SECURE_LIB__
     if (!fp) return SI_FILE;
     SI_Error rc = LoadFile(fp);
     fclose(fp);
     return rc;
-#else // SI_CONVERT_ICU
+#else // !_WIN32 (therefore SI_CONVERT_ICU)
     char szFile[256];
     u_austrncpy(szFile, a_pwszFile, sizeof(szFile));
     return LoadFile(szFile);
-#endif
+#endif // _WIN32
 }
 #endif // SI_HAS_WIDE_FILE
 
@@ -1886,11 +1886,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
     ) const
 {
     FILE * fp = NULL;
-#if __STDC_WANT_SECURE_LIB__
+#if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
     fopen_s(&fp, a_pszFile, "wb");
-#else
+#else // !__STDC_WANT_SECURE_LIB__
     fp = fopen(a_pszFile, "wb");
-#endif
+#endif // __STDC_WANT_SECURE_LIB__
     if (!fp) return SI_FILE;
     SI_Error rc = SaveFile(fp, a_bAddSignature);
     fclose(fp);
@@ -1911,11 +1911,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
     SI_Error rc = SaveFile(fp, a_bAddSignature);
     fclose(fp);
     return rc;
-#else // SI_CONVERT_ICU
+#else // !_WIN32 (therefore SI_CONVERT_ICU)
     char szFile[256];
     u_austrncpy(szFile, a_pwszFile, sizeof(szFile));
     return SaveFile(szFile, a_bAddSignature);
-#endif
+#endif // _WIN32
 }
 #endif // SI_HAS_WIDE_FILE
 
