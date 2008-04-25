@@ -11,6 +11,7 @@
 
 #include <locale.h>
 #include <stdio.h>
+#include <cassert>
 
 #define SI_SUPPORT_IOSTREAMS
 #if defined(SI_SUPPORT_IOSTREAMS) && !defined(_UNICODE)
@@ -93,6 +94,20 @@ Test(
         pItem = iKey->pItem;
         _tprintf(_T("Key: %s\n"), pItem);
     }
+
+    // add a decimal value
+    ini.SetLongValue(_T("integer"), _T("dec"), 42, NULL, false);
+    ini.SetLongValue(_T("integer"), _T("hex"), 42, NULL, true);
+
+    // add some bool values
+    ini.SetBoolValue(_T("bool"), _T("t"), true);
+    ini.SetBoolValue(_T("bool"), _T("f"), false);
+
+    // get the values back
+    assert(42 == ini.GetLongValue(_T("integer"), _T("dec")));
+    assert(42 == ini.GetLongValue(_T("integer"), _T("hex")));
+    assert(true  == ini.GetBoolValue(_T("bool"), _T("t")));
+    assert(false == ini.GetBoolValue(_T("bool"), _T("f")));
 
     // delete the section "standard"
     ini.Delete(_T("standard"), NULL);

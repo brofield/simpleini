@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.6
+        <tr><th>Version     <td>4.7
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -170,7 +170,7 @@
     The licence text below is the boilerplate "MIT Licence" used from:
     http://www.opensource.org/licenses/mit-license.php
 
-    Copyright (c) 2006, Brodie Thiesfield
+    Copyright (c) 2006-2008, Brodie Thiesfield
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
@@ -836,6 +836,51 @@ public:
         bool *          a_pHasMultiple = NULL
         ) const;
 
+    /** Retrieve a numeric value for a specific key. If multiple keys are enabled
+        (see SetMultiKey) then only the first value associated with that key
+        will be returned, see GetAllValues for getting all values with multikey.
+
+        @param a_pSection       Section to search
+        @param a_pKey           Key to search for
+        @param a_nDefault       Value to return if the key is not found
+        @param a_pHasMultiple   Optionally receive notification of if there are
+                                multiple entries for this key.
+
+        @return a_nDefault      Key was not found in the section
+        @return other           Value of the key
+     */
+    long GetLongValue(
+        const SI_CHAR * a_pSection,
+        const SI_CHAR * a_pKey,
+        long            a_nDefault     = 0,
+        bool *          a_pHasMultiple = NULL
+        ) const;
+
+    /** Retrieve a boolean value for a specific key. If multiple keys are enabled
+        (see SetMultiKey) then only the first value associated with that key
+        will be returned, see GetAllValues for getting all values with multikey.
+
+        Strings starting with "t", "y", "on" or "1" are returned as logically true.
+        Strings starting with "f", "n", "of" or "0" are returned as logically false.
+        For all other values the default is returned. Character comparisons are 
+        case-insensitive.
+
+        @param a_pSection       Section to search
+        @param a_pKey           Key to search for
+        @param a_bDefault       Value to return if the key is not found
+        @param a_pHasMultiple   Optionally receive notification of if there are
+                                multiple entries for this key.
+
+        @return a_nDefault      Key was not found in the section
+        @return other           Value of the key
+     */
+    bool GetBoolValue(
+        const SI_CHAR * a_pSection,
+        const SI_CHAR * a_pKey,
+        bool            a_bDefault     = false,
+        bool *          a_pHasMultiple = NULL
+        ) const;
+
     /** Add or update a section or value. This will always insert
         when multiple keys are enabled.
 
@@ -868,6 +913,50 @@ public:
     {
         return AddEntry(a_pSection, a_pKey, a_pValue, a_pComment, true);
     }
+
+    /** Add or update a numeric value. This will always insert
+        when multiple keys are enabled.
+
+        @param a_pSection   Section to add or update
+        @param a_pKey       Key to add or update. 
+        @param a_nValue     Value to set. 
+        @param a_pComment   Comment to be associated with the key. See the 
+                            notes on SetValue() for comments.
+        @param a_bUseHex    By default the value will be written to the file 
+                            in decimal format. Set this to true to write it 
+                            as hexadecimal.
+
+        @return SI_Error    See error definitions
+        @return SI_UPDATED  Value was updated
+        @return SI_INSERTED Value was inserted
+     */
+    SI_Error SetLongValue(
+        const SI_CHAR * a_pSection,
+        const SI_CHAR * a_pKey,
+        long            a_nValue,
+        const SI_CHAR * a_pComment = NULL,
+        bool            a_bUseHex = false
+        );
+
+    /** Add or update a boolean value. This will always insert
+        when multiple keys are enabled.
+
+        @param a_pSection   Section to add or update
+        @param a_pKey       Key to add or update. 
+        @param a_bValue     Value to set. 
+        @param a_pComment   Comment to be associated with the key. See the 
+                            notes on SetValue() for comments.
+
+        @return SI_Error    See error definitions
+        @return SI_UPDATED  Value was updated
+        @return SI_INSERTED Value was inserted
+     */
+    SI_Error SetBoolValue(
+        const SI_CHAR * a_pSection,
+        const SI_CHAR * a_pKey,
+        bool            a_nValue,
+        const SI_CHAR * a_pComment = NULL
+        );
 
     /** Delete an entire section, or a key from a section. Note that the
         data returned by GetSection is invalid and must not be used after
@@ -1754,6 +1843,132 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetValue(
     return iKeyVal->second;
 }
 
+template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
+long
+CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetLongValue(
+    const SI_CHAR * a_pSection,
+    const SI_CHAR * a_pKey,
+    long            a_nDefault,
+    bool *          a_pHasMultiple
+    ) const
+{
+    // return the default if we don't have a value
+    const SI_CHAR * pszValue = GetValue(a_pSection, a_pKey, NULL, a_pHasMultiple);
+    if (!pszValue || !*pszValue) return a_nDefault;
+
+    // convert to UTF-8/MBCS which for a numeric value will be the same as ASCII
+    char szValue[64] = { 0 };
+    SI_CONVERTER c(m_bStoreIsUtf8);
+    if (!c.ConvertToStore(pszValue, szValue, sizeof(szValue))) {
+        return a_nDefault;
+    }
+
+    // handle the value as hex if prefaced with "0x"
+    long nValue = a_nDefault;
+    char * pszSuffix = szValue;
+    if (szValue[0] == '0' && (szValue[1] == 'x' || szValue[1] == 'X')) {
+    	if (!szValue[2]) return a_nDefault;
+        nValue = strtol(&szValue[2], &pszSuffix, 16);
+    }
+    else {
+        nValue = strtol(szValue, &pszSuffix, 10);
+    }
+
+    // any invalid strings will return the default value
+    if (*pszSuffix) { 
+        return a_nDefault; 
+    }
+
+    return nValue;
+}
+
+template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
+SI_Error 
+CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetLongValue(
+    const SI_CHAR * a_pSection,
+    const SI_CHAR * a_pKey,
+    long            a_nValue,
+    const SI_CHAR * a_pComment,
+    bool            a_bUseHex
+    )
+{
+    // use SetValue to create sections
+    if (!a_pSection || !a_pKey) return SI_FAIL;
+
+    // convert to an ASCII string
+    char szInput[64];
+    sprintf(szInput, a_bUseHex ? "0x%lx" : "%ld", a_nValue);
+
+    // convert to output text
+    SI_CHAR szOutput[64];
+    SI_CONVERTER c(m_bStoreIsUtf8);
+    c.ConvertFromStore(szInput, strlen(szInput) + 1, 
+        szOutput, sizeof(szOutput) / sizeof(SI_CHAR));
+
+    // actually add it
+    return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, true);
+}
+
+template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
+bool
+CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetBoolValue(
+    const SI_CHAR * a_pSection,
+    const SI_CHAR * a_pKey,
+    bool            a_bDefault,
+    bool *          a_pHasMultiple
+    ) const
+{
+    // return the default if we don't have a value
+    const SI_CHAR * pszValue = GetValue(a_pSection, a_pKey, NULL, a_pHasMultiple);
+    if (!pszValue || !*pszValue) return a_bDefault;
+
+    // we only look at the minimum number of characters
+    switch (pszValue[0]) {
+    case 't': case 'T': // true
+    case 'y': case 'Y': // yes
+    case '1':           // 1 (one)
+        return true;
+
+    case 'f': case 'F': // false
+    case 'n': case 'N': // no
+    case '0':           // 0 (zero)
+        return false;
+
+    case 'o': case 'O':
+        if (pszValue[1] == 'n' || pszValue[1] == 'N') return true;  // on
+        if (pszValue[1] == 'f' || pszValue[1] == 'F') return false; // off
+        break;
+    }
+
+    // no recognized value, return the default
+    return a_bDefault;
+}
+
+template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
+SI_Error 
+CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetBoolValue(
+    const SI_CHAR * a_pSection,
+    const SI_CHAR * a_pKey,
+    bool            a_bValue,
+    const SI_CHAR * a_pComment 
+    )
+{
+    // use SetValue to create sections
+    if (!a_pSection || !a_pKey) return SI_FAIL;
+
+    // convert to an ASCII string
+    const char * pszInput = a_bValue ? "true" : "false";
+
+    // convert to output text
+    SI_CHAR szOutput[64];
+    SI_CONVERTER c(m_bStoreIsUtf8);
+    c.ConvertFromStore(pszInput, strlen(pszInput) + 1, 
+        szOutput, sizeof(szOutput) / sizeof(SI_CHAR));
+
+    // actually add it
+    return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, true);
+}
+    
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 bool
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetAllValues(
