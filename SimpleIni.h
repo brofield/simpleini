@@ -2626,13 +2626,13 @@ public:
      *
      * @param a_pInputData  Data in storage format to be converted to SI_CHAR.
      * @param a_uInputDataLen Length of storage format data in bytes. This
-     *                      must be the actual length of the data, including
-     *                      NULL byte if NULL terminated string is required.
+     *                       must be the actual length of the data, including
+     *                       NULL byte if NULL terminated string is required.
      * @param a_pOutputData Pointer to the output buffer to received the
-     *                      converted data.
+     *                       converted data.
      * @param a_uOutputDataSize Size of the output buffer in SI_CHAR.
      * @return              true if all of the input data was successfully
-     *                      converted.
+     *                       converted.
      */
     bool ConvertFromStore(
         const char *    a_pInputData,
@@ -2675,10 +2675,10 @@ public:
      * data. The storage format is always UTF-8 or MBCS.
      *
      * @param a_pInputData  NULL terminated string to calculate the number of
-     *                      bytes required to be converted to storage format.
+     *                       bytes required to be converted to storage format.
      * @return              Number of bytes required by the string when
-     *                      converted to storage format. This size always
-     *                      includes space for the terminating NULL character.
+     *                       converted to storage format. This size always
+     *                       includes space for the terminating NULL character.
      * @return              -1 cast to size_t on a conversion error.
      */
     size_t SizeToStore(
@@ -2705,14 +2705,14 @@ public:
      * The storage format is always UTF-8 or MBCS.
      *
      * @param a_pInputData  NULL terminated source string to convert. All of
-     *                      the data will be converted including the
-     *                      terminating NULL character.
+     *                       the data will be converted including the
+     *                       terminating NULL character.
      * @param a_pOutputData Pointer to the buffer to receive the converted
-     *                      string.
+     *                       string.
      * @param a_uOutputDataSize Size of the output buffer in char.
      * @return              true if all of the input data, including the
-     *                      terminating NULL character was successfully
-     *                      converted.
+     *                       terminating NULL character was successfully
+     *                       converted.
      */
     bool ConvertToStore(
         const SI_CHAR * a_pInputData,
@@ -2738,14 +2738,14 @@ public:
             if (sizeof(wchar_t) == sizeof(UTF32)) {
                 const UTF32 * pUtf32 = (const UTF32 *) a_pInputData;
                 retval = ConvertUTF32toUTF8(
-                    &pUtf32, pUtf32 + uInputLen + 1,
+                    &pUtf32, pUtf32 + uInputLen,
                     &pUtf8, pUtf8 + a_uOutputDataSize,
                     lenientConversion);
             }
             else if (sizeof(wchar_t) == sizeof(UTF16)) {
                 const UTF16 * pUtf16 = (const UTF16 *) a_pInputData;
                 retval = ConvertUTF16toUTF8(
-                    &pUtf16, pUtf16 + uInputLen + 1,
+                    &pUtf16, pUtf16 + uInputLen,
                     &pUtf8, pUtf8 + a_uOutputDataSize,
                     lenientConversion);
             }
