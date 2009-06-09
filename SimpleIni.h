@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.9
+        <tr><th>Version     <td>4.9.1
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -2201,15 +2201,13 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
     for ( ; iSection != oSections.end(); ++iSection ) {
         // write out the comment if there is one
         if (iSection->pComment) {
-            if (!convert.ConvertToStore(iSection->pComment)) {
-                return SI_FAIL;
-            }
             if (bNeedNewLine) {
                 a_oOutput.Write(SI_NEWLINE_A);
                 a_oOutput.Write(SI_NEWLINE_A);
             }
-            a_oOutput.Write(convert.Data());
-            a_oOutput.Write(SI_NEWLINE_A);
+            if (!OutputMultiLineText(a_oOutput, convert, iSection->pComment)) {
+                return SI_FAIL;
+            }
             bNeedNewLine = false;
         }
 
