@@ -303,6 +303,11 @@ public:
             , pComment(NULL)
             , nOrder(a_nOrder)
         { }
+        Entry(const SI_CHAR * a_pszItem, const SI_CHAR * a_pszComment, int a_nOrder)
+            : pItem(a_pszItem)
+            , pComment(a_pszComment)
+            , nOrder(a_nOrder)
+        { }
         Entry(const Entry & rhs) { operator=(rhs); }
         Entry & operator=(const Entry & rhs) {
             pItem    = rhs.pItem;
@@ -1982,6 +1987,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetAllValues(
     TNamesDepend &  a_values
     ) const
 {
+    a_values.clear();
+
     if (!a_pSection || !a_pKey) {
         return false;
     }
@@ -1995,11 +2002,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetAllValues(
     }
 
     // insert all values for this key
-    a_values.push_back(iKeyVal->second);
+    a_values.push_back(Entry(iKeyVal->second, iKeyVal->first.pComment, iKeyVal->first.nOrder));
     if (m_bAllowMultiKey) {
         ++iKeyVal;
         while (iKeyVal != iSection->second.end() && !IsLess(a_pKey, iKeyVal->first.pItem)) {
-            a_values.push_back(Entry(iKeyVal->second, iKeyVal->first.nOrder));
+            a_values.push_back(Entry(iKeyVal->second, iKeyVal->first.pComment, iKeyVal->first.nOrder));
             ++iKeyVal;
         }
     }
@@ -2063,6 +2070,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetAllSections(
     TNamesDepend & a_names
     ) const
 {
+    a_names.clear();
     typename TSection::const_iterator i = m_data.begin();
     for (int n = 0; i != m_data.end(); ++i, ++n ) {
         a_names.push_back(i->first);
@@ -2076,6 +2084,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetAllKeys(
     TNamesDepend &  a_names
     ) const
 {
+    a_names.clear();
+
     if (!a_pSection) {
         return false;
     }
@@ -2232,16 +2242,16 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
             TNamesDepend oValues;
             GetAllValues(iSection->pItem, iKey->pItem, oValues);
 
-            // write out the comment if there is one
-            if (iKey->pComment) {
-                a_oOutput.Write(SI_NEWLINE_A);
-                if (!OutputMultiLineText(a_oOutput, convert, iKey->pComment)) {
-                    return SI_FAIL;
-                }
-            }
-
             typename TNamesDepend::const_iterator iValue = oValues.begin();
             for ( ; iValue != oValues.end(); ++iValue) {
+                // write out the comment if there is one
+                if (iValue->pComment) {
+                    a_oOutput.Write(SI_NEWLINE_A);
+                    if (!OutputMultiLineText(a_oOutput, convert, iValue->pComment)) {
+                        return SI_FAIL;
+                    }
+                }
+
                 // write the key
                 if (!convert.ConvertToStore(iKey->pItem)) {
                     return SI_FAIL;
