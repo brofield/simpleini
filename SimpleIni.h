@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.8.2
+        <tr><th>Version     <td>4.9
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -133,8 +133,6 @@
     - Every key may have a single "key comment". This comment will start
       with the first comment line following the section start, or the file
       comment if there is no section name.
-    - MultiKey entries may have only a single comment and will take the
-      comment associated with the first key found.
     - Comments are set at the time that the file, section or key is first
       created. The only way to modify a comment on a section or a key is to
       delete that entry and recreate it with the new comment. There is no
@@ -733,7 +731,9 @@ public:
 
     /** Retrieve all section names. The list is returned as an STL vector of
         names and can be iterated or searched as necessary. Note that the
-        collation order of the returned strings is NOT DEFINED.
+        sort order of the returned strings is NOT DEFINED. You can sort
+        the names into the load order if desired. Search this file for ".sort"
+        for an example.
 
         NOTE! This structure contains only pointers to strings. The actual
         string data is stored in memory owned by CSimpleIni. Ensure that the
@@ -741,14 +741,16 @@ public:
         are in use!
 
         @param a_names          Vector that will receive all of the section
-                                names. See note above!
+                                 names. See note above!
      */
     void GetAllSections(
         TNamesDepend & a_names
         ) const;
 
-    /** Retrieve all unique key names in a section. The collation order of the
-        returned strings is NOT DEFINED. Only unique key names are returned.
+    /** Retrieve all unique key names in a section. The sort order of the
+        returned strings is NOT DEFINED. You can sort the names into the load 
+        order if desired. Search this file for ".sort" for an example. Only 
+        unique key names are returned.
 
         NOTE! This structure contains only pointers to strings. The actual
         string data is stored in memory owned by CSimpleIni. Ensure that the
@@ -757,7 +759,7 @@ public:
 
         @param a_pSection       Section to request data for
         @param a_names          List that will receive all of the key
-                                names. See note above!
+                                 names. See note above!
 
         @return true            Section was found.
         @return false           Matching section was not found.
@@ -768,7 +770,9 @@ public:
         ) const;
 
     /** Retrieve all values for a specific key. This method can be used when
-        multiple keys are both enabled and disabled.
+        multiple keys are both enabled and disabled. Note that the sort order 
+        of the returned strings is NOT DEFINED. You can sort the names into 
+        the load order if desired. Search this file for ".sort" for an example.
 
         NOTE! The returned values are pointers to string data stored in memory
         owned by CSimpleIni. Ensure that the CSimpleIni object is not destroyed
