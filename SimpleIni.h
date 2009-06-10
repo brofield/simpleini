@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.9.1
+        <tr><th>Version     <td>4.10
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -909,6 +909,12 @@ public:
                             separately to the key. The comment string must be
                             in full comment form already (have a comment
                             character starting every line).
+        @param a_bForceReplace  Should all existing values in a multi-key INI
+                            file be replaced with this entry. This option has
+                            no effect if not using multi-key files. The 
+                            difference between Delete/SetValue and SetValue
+                            with a_bForceReplace = true, is that the load 
+                            order and comment will be preserved this way.
 
         @return SI_Error    See error definitions
         @return SI_UPDATED  Value was updated
@@ -918,10 +924,11 @@ public:
         const SI_CHAR * a_pSection,
         const SI_CHAR * a_pKey,
         const SI_CHAR * a_pValue,
-        const SI_CHAR * a_pComment = NULL
+        const SI_CHAR * a_pComment      = NULL,
+        bool            a_bForceReplace = false
         )
     {
-        return AddEntry(a_pSection, a_pKey, a_pValue, a_pComment, true);
+        return AddEntry(a_pSection, a_pKey, a_pValue, a_pComment, a_bForceReplace, true);
     }
 
     /** Add or update a numeric value. This will always insert
@@ -935,6 +942,13 @@ public:
         @param a_bUseHex    By default the value will be written to the file 
                             in decimal format. Set this to true to write it 
                             as hexadecimal.
+        @param a_bForceReplace  Should all existing values in a multi-key INI
+                            file be replaced with this entry. This option has
+                            no effect if not using multi-key files. The 
+                            difference between Delete/SetLongValue and 
+                            SetLongValue with a_bForceReplace = true, is that 
+                            the load order and comment will be preserved this 
+                            way.
 
         @return SI_Error    See error definitions
         @return SI_UPDATED  Value was updated
@@ -944,8 +958,9 @@ public:
         const SI_CHAR * a_pSection,
         const SI_CHAR * a_pKey,
         long            a_nValue,
-        const SI_CHAR * a_pComment = NULL,
-        bool            a_bUseHex = false
+        const SI_CHAR * a_pComment      = NULL,
+        bool            a_bUseHex       = false,
+        bool            a_bForceReplace = false
         );
 
     /** Add or update a boolean value. This will always insert
@@ -956,6 +971,13 @@ public:
         @param a_bValue     Value to set. 
         @param a_pComment   Comment to be associated with the key. See the 
                             notes on SetValue() for comments.
+        @param a_bForceReplace  Should all existing values in a multi-key INI
+                            file be replaced with this entry. This option has
+                            no effect if not using multi-key files. The 
+                            difference between Delete/SetBoolValue and 
+                            SetBoolValue with a_bForceReplace = true, is that 
+                            the load order and comment will be preserved this 
+                            way.
 
         @return SI_Error    See error definitions
         @return SI_UPDATED  Value was updated
@@ -965,7 +987,8 @@ public:
         const SI_CHAR * a_pSection,
         const SI_CHAR * a_pKey,
         bool            a_nValue,
-        const SI_CHAR * a_pComment = NULL
+        const SI_CHAR * a_pComment      = NULL,
+        bool            a_bForceReplace = false
         );
 
     /** Delete an entire section, or a key from a section. Note that the
@@ -1045,6 +1068,12 @@ private:
                             with the section, otherwise the key. This must be
                             a string in full comment form already (have a
                             comment character starting every line).
+        @param a_bForceReplace  Should all existing values in a multi-key INI
+                            file be replaced with this entry. This option has
+                            no effect if not using multi-key files. The 
+                            difference between Delete/AddEntry and AddEntry
+                            with a_bForceReplace = true, is that the load 
+                            order and comment will be preserved this way.
         @param a_bCopyStrings   Should copies of the strings be made or not.
                             If false then the pointers will be used as is.
     */
@@ -1053,6 +1082,7 @@ private:
         const SI_CHAR * a_pKey,
         const SI_CHAR * a_pValue,
         const SI_CHAR * a_pComment,
+        bool            a_bForceReplace,
         bool            a_bCopyStrings
         );
 
@@ -1330,7 +1360,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Load(
 
     // add every entry in the file to the data table
     while (FindEntry(pWork, pSection, pItem, pVal, pComment)) {
-        rc = AddEntry(pSection, pItem, pVal, pComment, bCopyStrings);
+        rc = AddEntry(pSection, pItem, pVal, pComment, false, bCopyStrings);
         if (rc < 0) return rc;
     }
 
@@ -1741,6 +1771,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
     const SI_CHAR * a_pKey,
     const SI_CHAR * a_pValue,
     const SI_CHAR * a_pComment,
+    bool            a_bForceReplace,
     bool            a_bCopyStrings
     )
 {
@@ -1756,29 +1787,25 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
         if (rc < 0) return rc;
     }
 
-    // check for existence of the section first if we need string copies
-    typename TSection::iterator iSection = m_data.end();
-    if (a_bCopyStrings) {
-        iSection = m_data.find(a_pSection);
-        if (iSection == m_data.end()) {
-            // if the section doesn't exist then we need a copy as the
-            // string needs to last beyond the end of this function
-            // because we will be inserting the section next
+    // create the section entry if necessary
+    typename TSection::iterator iSection = m_data.find(a_pSection);
+    if (iSection == m_data.end()) {
+        // if the section doesn't exist then we need a copy as the
+        // string needs to last beyond the end of this function
+        if (a_bCopyStrings) {
             rc = CopyString(a_pSection);
             if (rc < 0) return rc;
         }
-    }
 
-    // create the section entry
-    if (iSection == m_data.end()) {
-        Entry oKey(a_pSection, ++m_nOrder);
+        // only set the comment if this is a section only entry
+        Entry oSection(a_pSection, ++m_nOrder);
         if (a_pComment && (!a_pKey || !a_pValue)) {
-            oKey.pComment = a_pComment;
+            oSection.pComment = a_pComment;
         }
-        typename TSection::value_type oEntry(oKey, TKeyVal());
+
+        typename TSection::value_type oEntry(oSection, TKeyVal());
         typedef typename TSection::iterator SectionIterator;
-        std::pair<SectionIterator,bool> i =
-            m_data.insert(oEntry);
+        std::pair<SectionIterator,bool> i = m_data.insert(oEntry);
         iSection = i.first;
         bInserted = true;
     }
@@ -1791,9 +1818,31 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
     TKeyVal & keyval = iSection->second;
     typename TKeyVal::iterator iKey = keyval.find(a_pKey);
 
+    // remove all existing entries but save the load order and
+    // comment of the first entry
+    int nLoadOrder = ++m_nOrder;
+    if (iKey != keyval.end() && m_bAllowMultiKey && a_bForceReplace) {
+        const SI_CHAR * pComment = NULL;
+        while (iKey != keyval.end() && !IsLess(a_pKey, iKey->first.pItem)) {
+            if (iKey->first.nOrder < nLoadOrder) {
+                nLoadOrder = iKey->first.nOrder;
+                pComment   = iKey->first.pComment;
+            }
+            ++iKey;
+        }
+        if (pComment) {
+            DeleteString(a_pComment);
+            a_pComment = pComment;
+            CopyString(a_pComment);
+        }
+        Delete(a_pSection, a_pKey);
+        iKey = keyval.end();
+    }
+
     // make string copies if necessary
+    bool bForceCreateNewKey = m_bAllowMultiKey && !a_bForceReplace;
     if (a_bCopyStrings) {
-        if (m_bAllowMultiKey || iKey == keyval.end()) {
+        if (bForceCreateNewKey || iKey == keyval.end()) {
             // if the key doesn't exist then we need a copy as the
             // string needs to last beyond the end of this function
             // because we will be inserting the key next
@@ -1807,8 +1856,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
     }
 
     // create the key entry
-    if (iKey == keyval.end() || m_bAllowMultiKey) {
-        Entry oKey(a_pKey, ++m_nOrder);
+    if (iKey == keyval.end() || bForceCreateNewKey) {
+        Entry oKey(a_pKey, nLoadOrder);
         if (a_pComment) {
             oKey.pComment = a_pComment;
         }
@@ -1903,7 +1952,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetLongValue(
     const SI_CHAR * a_pKey,
     long            a_nValue,
     const SI_CHAR * a_pComment,
-    bool            a_bUseHex
+    bool            a_bUseHex,
+    bool            a_bForceReplace
     )
 {
     // use SetValue to create sections
@@ -1920,7 +1970,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetLongValue(
         szOutput, sizeof(szOutput) / sizeof(SI_CHAR));
 
     // actually add it
-    return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, true);
+    return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, a_bForceReplace, true);
 }
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
@@ -1964,7 +2014,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetBoolValue(
     const SI_CHAR * a_pSection,
     const SI_CHAR * a_pKey,
     bool            a_bValue,
-    const SI_CHAR * a_pComment 
+    const SI_CHAR * a_pComment,
+    bool            a_bForceReplace
     )
 {
     // use SetValue to create sections
@@ -1980,7 +2031,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetBoolValue(
         szOutput, sizeof(szOutput) / sizeof(SI_CHAR));
 
     // actually add it
-    return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, true);
+    return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, a_bForceReplace, true);
 }
     
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
