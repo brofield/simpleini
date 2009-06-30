@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.10
+        <tr><th>Version     <td>4.11
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -2234,6 +2234,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
     GetAllSections(oSections);
 #if defined(_MSC_VER) && _MSC_VER <= 1200
     oSections.sort();
+#elif defined(__BORLANDC__)
+    oSections.sort(Entry::LoadOrder());
 #else
     oSections.sort(typename Entry::LoadOrder());
 #endif
@@ -2284,6 +2286,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
         GetAllKeys(iSection->pItem, oKeys);
 #if defined(_MSC_VER) && _MSC_VER <= 1200
         oKeys.sort();
+#elif defined(__BORLANDC__)
+        oKeys.sort(Entry::LoadOrder());
 #else
         oKeys.sort(typename Entry::LoadOrder());
 #endif
