@@ -445,8 +445,8 @@ public:
         @param a_bMultiLine  See the method SetMultiLine() for details.
      */
     CSimpleIniTempl(
-        bool a_bIsUtf8 = false,
-        bool a_bMultiKey = false,
+        bool a_bIsUtf8    = false,
+        bool a_bMultiKey  = false,
         bool a_bMultiLine = false
         );
 
@@ -519,6 +519,19 @@ public:
     /** Query the status of multi-line data */
     bool IsMultiLine() const { return m_bAllowMultiLine; }
 
+    /** Should spaces be added around the equals sign when writing key/value
+        pairs out. When true, the result will be "key = value". When false, 
+        the result will be "key=value". This value may be changed at any time.
+
+        \param a_bSpaces     Add spaces around the equals sign?
+     */
+    void SetSpaces(bool a_bSpaces = true) {
+        m_bSpaces = a_bSpaces;
+    }
+
+    /** Query the status of spaces output */
+    bool UsingSpaces() const { return m_bSpaces; }
+    
     /*-----------------------------------------------------------------------*/
     /** @}
         @{ @name Loading INI Data */
@@ -986,7 +999,7 @@ public:
     SI_Error SetBoolValue(
         const SI_CHAR * a_pSection,
         const SI_CHAR * a_pKey,
-        bool            a_nValue,
+        bool            a_bValue,
         const SI_CHAR * a_pComment      = NULL,
         bool            a_bForceReplace = false
         );
@@ -1165,6 +1178,9 @@ private:
     /** Are data values permitted to span multiple lines? */
     bool m_bAllowMultiLine;
 
+    /** Should spaces be written out surrounding the equals sign? */
+    bool m_bSpaces;
+    
     /** Next order value, used to ensure sections and keys are output in the
         same order that they are loaded/added.
      */
@@ -1187,6 +1203,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::CSimpleIniTempl(
   , m_bStoreIsUtf8(a_bIsUtf8)
   , m_bAllowMultiKey(a_bAllowMultiKey)
   , m_bAllowMultiLine(a_bAllowMultiLine)
+  , m_bSpaces(true)
   , m_nOrder(0)
 { }
 
@@ -1961,7 +1978,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetLongValue(
 
     // convert to an ASCII string
     char szInput[64];
+#if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
+    sprintf_s(szInput, a_bUseHex ? "0x%lx" : "%ld", a_nValue);
+#else // !__STDC_WANT_SECURE_LIB__
     sprintf(szInput, a_bUseHex ? "0x%lx" : "%ld", a_nValue);
+#endif // __STDC_WANT_SECURE_LIB__
 
     // convert to output text
     SI_CHAR szOutput[64];
@@ -2319,7 +2340,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
                 if (!convert.ConvertToStore(iValue->pItem)) {
                     return SI_FAIL;
                 }
-                a_oOutput.Write(" = ");
+                a_oOutput.Write(m_bSpaces ? " = " : "=");
                 if (m_bAllowMultiLine && IsMultiLineData(iValue->pItem)) {
                     // multi-line data needs to be processed specially to ensure
                     // that we use the correct newline format for the current system
