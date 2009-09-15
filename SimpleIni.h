@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.11
+        <tr><th>Version     <td>4.12
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
