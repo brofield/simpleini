@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.12
+        <tr><th>Version     <td>4.13
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -1878,7 +1878,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
         if (a_pComment) {
             oKey.pComment = a_pComment;
         }
-        typename TKeyVal::value_type oEntry(oKey, NULL);
+        typename TKeyVal::value_type oEntry(oKey, (const SI_CHAR *) NULL);
         iKey = keyval.insert(oEntry);
         bInserted = true;
     }
