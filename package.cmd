@@ -14,7 +14,7 @@ DEL /Q "SimpleIni.ncb"
 ATTRIB -H "SimpleIni.suo"
 DEL /Q "SimpleIni.suo"
 DEL /Q "SimpleIni.opt"
-START "Generate documentation" /WAIT SimpleIni.doxy
+START "Generate documentation" /WAIT "C:\Program Files (x86)\doxygen\bin\doxygen.exe" SimpleIni.doxy
 cd ..
 del simpleini-%VERSION%.zip
 %SEVENZIP% a -tzip -r- -x!simpleini\.svn simpleini-%VERSION%.zip simpleini\*
