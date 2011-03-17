@@ -1,4 +1,4 @@
-set VERSION=4.13
+set VERSION=4.14
 
 set SEVENZIP="C:\Program Files\7-Zip\7z.exe"
 
@@ -14,6 +14,9 @@ DEL /Q "SimpleIni.ncb"
 ATTRIB -H "SimpleIni.suo"
 DEL /Q "SimpleIni.suo"
 DEL /Q "SimpleIni.opt"
+DEL /Q testsi-out*.ini
+DEL /Q test1-blah.ini
+DEL /Q test1-output.ini
 START "Generate documentation" /WAIT "C:\Program Files (x86)\doxygen\bin\doxygen.exe" SimpleIni.doxy
 cd ..
 del simpleini-%VERSION%.zip

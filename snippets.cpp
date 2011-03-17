@@ -34,7 +34,7 @@ snippets(
 
     // load from a string
     std::string strData;
-    rc = ini.Load(strData.c_str(), strData.size());
+    rc = ini.LoadData(strData.c_str(), strData.size());
     if (rc < 0) return false;
 
     // GETTING SECTIONS AND KEYS
