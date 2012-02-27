@@ -171,7 +171,7 @@
     The licence text below is the boilerplate "MIT Licence" used from:
     http://www.opensource.org/licenses/mit-license.php
 
-    Copyright (c) 2006-2008, Brodie Thiesfield
+    Copyright (c) 2006-2012, Brodie Thiesfield
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
