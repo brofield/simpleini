@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
         <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.14
+        <tr><th>Version     <td>4.15
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -3039,10 +3039,9 @@ public:
         }
 
         nError = U_ZERO_ERROR;
-        ucnv_resetToUnicode(m_pConverter);
         int32_t nLen = ucnv_toUChars(m_pConverter, NULL, 0,
             a_pInputData, (int32_t) a_uInputDataLen, &nError);
-        if (nError != U_BUFFER_OVERFLOW_ERROR) {
+        if (U_FAILURE(nError) && nError != U_BUFFER_OVERFLOW_ERROR) {
             return (size_t) -1;
         }
 
@@ -3079,7 +3078,6 @@ public:
         }
 
         nError = U_ZERO_ERROR;
-        ucnv_resetToUnicode(m_pConverter);
         ucnv_toUChars(m_pConverter,
             a_pOutputData, (int32_t) a_uOutputDataSize,
             a_pInputData, (int32_t) a_uInputDataLen, &nError);
@@ -3114,10 +3112,9 @@ public:
         }
 
         nError = U_ZERO_ERROR;
-        ucnv_resetFromUnicode(m_pConverter);
         int32_t nLen = ucnv_fromUChars(m_pConverter, NULL, 0,
             a_pInputData, -1, &nError);
-        if (nError != U_BUFFER_OVERFLOW_ERROR) {
+        if (U_FAILURE(nError) && nError != U_BUFFER_OVERFLOW_ERROR) {
             return (size_t) -1;
         }
 
@@ -3153,7 +3150,6 @@ public:
         }
 
         nError = U_ZERO_ERROR;
-        ucnv_resetFromUnicode(m_pConverter);
         ucnv_fromUChars(m_pConverter,
             a_pOutputData, (int32_t) a_uOutputDataSize,
             a_pInputData, -1, &nError);

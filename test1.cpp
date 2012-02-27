@@ -10,6 +10,7 @@
 #endif
 
 #ifdef _WIN32
+# include <windows.h>
 # define DELETE_FILE DeleteFileA
 #else
 # include <unistd.h>
@@ -121,7 +122,7 @@ bool TestStreams()
 
     Test oTest("TestStreams");
 
-    CSimpleIniA ini;
+    CSimpleIniW ini;
     ini.SetUnicode(true);
     ini.SetMultiKey(true);
     ini.SetMultiLine(true);
