@@ -412,6 +412,7 @@ public:
     */
     class Converter : private SI_CONVERTER {
     public:
+        using SI_CONVERTER::SizeToStore;
         Converter(bool a_bStoreIsUtf8) : SI_CONVERTER(a_bStoreIsUtf8) {
             m_scratch.resize(1024);
         }
