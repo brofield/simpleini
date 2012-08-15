@@ -1355,10 +1355,15 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     if (lSize == 0) {
         return SI_OK;
     }
-    char * pData = new char[lSize];
+    
+    // allocate and ensure NULL terminated
+    char * pData = new char[lSize+1];
     if (!pData) {
         return SI_NOMEM;
     }
+    pData[lSize] = 0;
+    
+    // load data into buffer
     fseek(a_fpFile, 0, SEEK_SET);
     size_t uRead = fread(pData, sizeof(char), lSize, a_fpFile);
     if (uRead != (size_t) lSize) {
