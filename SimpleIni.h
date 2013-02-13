@@ -2837,9 +2837,9 @@ public:
             return a_uInputDataLen;
         }
 
-#if !defined(_WIN32) && !defined(_linux)
-        // fall back processing for platforms that don't support C99 usage of mbstowcs
-        // worst case scenario is 1:1, this should be a sufficient buffer size
+#if defined(SI_NO_MBSTOWCS_NULL) || (!defined(_MSC_VER) && !defined(_linux))
+        // fall back processing for platforms that don't support a NULL dest to mbstowcs
+        // worst case scenario is 1:1, this will be a sufficient buffer size
         return a_uInputDataLen;
 #else
         // get the actual required buffer size
