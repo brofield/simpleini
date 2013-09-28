@@ -4,8 +4,8 @@
         <tr><th>Library     <td>SimpleIni
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
-        <tr><th>Source      <td>http://code.jellycan.com/simpleini/
-        <tr><th>Version     <td>4.16
+        <tr><th>Source      <td>https://github.com/brofield/simpleini
+        <tr><th>Version     <td>4.17
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
