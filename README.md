@@ -28,6 +28,7 @@ A cross-platform library that provides a simple API to read and write INI-style 
   * Windows/VC.NET 2003 (warning level 4)
   * Windows/VC 2005 (warning level 4)
   * Linux/gcc (-Wall)
+  * Windows/MinGW GCC
 
 # Documentation
 
