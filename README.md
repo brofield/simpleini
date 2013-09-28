@@ -38,7 +38,7 @@ Full documentation of the interface is available in doxygen format.
 
 These snippets are included with the distribution in the file snippets.cpp.
 
-## SIMPLE USAGE
+### SIMPLE USAGE
 
 ```c++
 CSimpleIniA ini;
@@ -48,7 +48,7 @@ const char * pVal = ini.GetValue("section", "key", "default");
 ini.SetValue("section", "key", "newvalue");
 ```
 
-## LOADING DATA
+### LOADING DATA
 
 ```c++
 // load from a data file
@@ -62,7 +62,7 @@ rc = ini.LoadData(strData.c_str(), strData.size());
 if (rc < 0) return false;
 ```
 
-<h4>GETTING SECTIONS AND KEYS</h4>
+### GETTING SECTIONS AND KEYS
 
 ```c++
 // get all sections
@@ -74,7 +74,7 @@ CSimpleIniA::TNamesDepend keys;
 ini.GetAllKeys("section-name", keys);
 ```
 
-## GETTING VALUES
+### GETTING VALUES
 
 ```c++
 // get the value of a key
@@ -102,7 +102,7 @@ for (i = values.begin(); i != values.end(); ++i) {
 }
 ```
 
-## MODIFYING DATA
+### MODIFYING DATA
 
 ```c++
 // adding a new section
@@ -125,7 +125,7 @@ printf("key: %s\n", rc == SI_INSERTED ?
     "inserted" : "updated");
 ```
 
-## DELETING DATA
+### DELETING DATA
 
 ```c++
 // deleting a key from a section. Optionally the entire
@@ -137,7 +137,7 @@ ini.Delete("section-name", "key-name",
 ini.Delete("section-name", NULL);
 ```
 
-## SAVING DATA
+### SAVING DATA
 
 ```c++
 // save the data to a string
