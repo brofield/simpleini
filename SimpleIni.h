@@ -2840,6 +2840,7 @@ public:
 #if defined(SI_NO_MBSTOWCS_NULL) || (!defined(_MSC_VER) && !defined(_linux))
         // fall back processing for platforms that don't support a NULL dest to mbstowcs
         // worst case scenario is 1:1, this will be a sufficient buffer size
+        (void)a_pInputData;
         return a_uInputDataLen;
 #else
         // get the actual required buffer size
