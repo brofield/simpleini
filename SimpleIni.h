@@ -293,6 +293,8 @@ template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 class CSimpleIniTempl
 {
 public:
+    typedef SI_CHAR SI_CHAR_T;
+
     /** key entry */
     struct Entry {
         const SI_CHAR * pItem;
