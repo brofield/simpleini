@@ -414,7 +414,6 @@ public:
     */
     class Converter : private SI_CONVERTER {
     public:
-        using SI_CONVERTER::SizeToStore;
         Converter(bool a_bStoreIsUtf8) : SI_CONVERTER(a_bStoreIsUtf8) {
             m_scratch.resize(1024);
         }
@@ -424,7 +423,7 @@ public:
             return *this;
         }
         bool ConvertToStore(const SI_CHAR * a_pszString) {
-            size_t uLen = SizeToStore(a_pszString);
+            size_t uLen = SI_CONVERTER::SizeToStore(a_pszString);
             if (uLen == (size_t)(-1)) {
                 return false;
             }
