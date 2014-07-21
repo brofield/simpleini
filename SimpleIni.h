@@ -1064,8 +1064,8 @@ public:
         data returned by GetSection is invalid and must not be used after
         anything has been deleted from that section using this method.
         Note when multiple keys is enabled, this will delete all keys with
-        that name; there is no way to selectively delete individual key/values
-        in this situation.
+        that name; to selectively delete individual key/values, use
+        DeleteValue.
 
         @param a_pSection       Section to delete key from, or if
                                 a_pKey is NULL, the section to remove.
@@ -1081,6 +1081,33 @@ public:
     bool Delete(
         const SI_CHAR * a_pSection,
         const SI_CHAR * a_pKey,
+        bool            a_bRemoveEmpty = false
+        );
+
+    /** Delete an entire section, or a key from a section. If value is
+        provided, only remove keys with the value. Note that the data
+        returned by GetSection is invalid and must not be used after
+        anything has been deleted from that section using this method.
+        Note when multiple keys is enabled, all keys with the value will
+        be deleted.
+
+        @param a_pSection       Section to delete key from, or if
+                                a_pKey is NULL, the section to remove.
+        @param a_pKey           Key to remove from the section. Set to
+                                NULL to remove the entire section.
+        @param a_pValue         Value of key to remove from the section.
+                                Set to NULL to remove all keys.
+        @param a_bRemoveEmpty   If the section is empty after this key has
+                                been deleted, should the empty section be
+                                removed?
+
+        @return true            Key/value or section was deleted.
+        @return false           Key/value or section was not found.
+     */
+    bool DeleteValue(
+        const SI_CHAR * a_pSection,
+        const SI_CHAR * a_pKey,
+        const SI_CHAR * a_pValue,
         bool            a_bRemoveEmpty = false
         );
 
@@ -2528,6 +2555,18 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Delete(
     bool            a_bRemoveEmpty
     )
 {
+    return DeleteValue(a_pSection, a_pKey, NULL, a_bRemoveEmpty);
+}
+
+template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
+bool
+CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::DeleteValue(
+    const SI_CHAR * a_pSection,
+    const SI_CHAR * a_pKey,
+    const SI_CHAR * a_pValue,
+    bool            a_bRemoveEmpty
+    )
+{
     if (!a_pSection) {
         return false;
     }
@@ -2544,17 +2583,29 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Delete(
             return false;
         }
 
+        const static SI_STRLESS isLess = SI_STRLESS();
+
         // remove any copied strings and then the key
         typename TKeyVal::iterator iDelete;
+        bool bDeleted = false;
         do {
             iDelete = iKeyVal++;
 
-            DeleteString(iDelete->first.pItem);
-            DeleteString(iDelete->second);
-            iSection->second.erase(iDelete);
+            if(a_pValue == NULL ||
+            (isLess(a_pValue, iDelete->second) == false &&
+            isLess(iDelete->second, a_pValue) == false)) {
+                DeleteString(iDelete->first.pItem);
+                DeleteString(iDelete->second);
+                iSection->second.erase(iDelete);
+                bDeleted = true;
+            }
         }
         while (iKeyVal != iSection->second.end()
             && !IsLess(a_pKey, iKeyVal->first.pItem));
+
+        if(!bDeleted) {
+            return false;
+        }
 
         // done now if the section is not empty or we are not pruning away
         // the empty sections. Otherwise let it fall through into the section

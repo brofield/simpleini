@@ -73,6 +73,12 @@ Test(
     _tprintf(_T("\n-- Number of keys in section [standard] = %d\n"),
         ini.GetSectionSize(_T("standard")));
 
+    // delete the key "foo" in section "standard", if it has value "bar"
+    ini.DeleteValue(_T("standard"), _T("foo"), _T("bar"));
+    pszVal = ini.GetValue(_T("standard"), _T("foo"), 0);
+    _tprintf(_T("\n-- Value of standard::foo is now '%s'\n"),
+        pszVal ? pszVal : _T("(null)"));
+
     // delete the key "foo" in section "standard"
     ini.Delete(_T("standard"), _T("foo"));
     pszVal = ini.GetValue(_T("standard"), _T("foo"), 0);
