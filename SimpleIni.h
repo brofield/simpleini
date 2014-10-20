@@ -213,6 +213,7 @@
 #endif
 
 #include <cstring>
+#include <cstdlib>
 #include <string>
 #include <map>
 #include <list>
