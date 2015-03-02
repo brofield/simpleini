@@ -161,6 +161,7 @@
       SI_STRLESS class, or by sorting the strings external to this library.
     - Usage of the <mbstring.h> header on Windows can be disabled by defining
       SI_NO_MBCS. This is defined automatically on Windows CE platforms.
+    - Not thread-safe so manage your own locking
 
     @section contrib CONTRIBUTIONS
     
