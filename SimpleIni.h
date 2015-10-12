@@ -1387,7 +1387,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     }
     
     // allocate and ensure NULL terminated
-    char * pData = new char[lSize+1];
+    char * pData = new(std::nothrow) char[lSize+1];
     if (!pData) {
         return SI_NOMEM;
     }
@@ -1436,7 +1436,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadData(
 
     // allocate memory for the data, ensure that there is a NULL
     // terminator wherever the converted data ends
-    SI_CHAR * pData = new SI_CHAR[uLen+1];
+    SI_CHAR * pData = new(std::nothrow) SI_CHAR[uLen+1];
     if (!pData) {
         return SI_NOMEM;
     }
@@ -1861,7 +1861,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::CopyString(
         for ( ; a_pString[uLen]; ++uLen) /*loop*/ ;
     }
     ++uLen; // NULL character
-    SI_CHAR * pCopy = new SI_CHAR[uLen];
+    SI_CHAR * pCopy = new(std::nothrow) SI_CHAR[uLen];
     if (!pCopy) {
         return SI_NOMEM;
     }
