@@ -1416,16 +1416,16 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadData(
 {
     SI_CONVERTER converter(m_bStoreIsUtf8);
 
-    if (a_uDataLen == 0) {
-        return SI_OK;
-    }
-
     // consume the UTF-8 BOM if it exists
     if (m_bStoreIsUtf8 && a_uDataLen >= 3) {
         if (memcmp(a_pData, SI_UTF8_SIGNATURE, 3) == 0) {
             a_pData    += 3;
             a_uDataLen -= 3;
         }
+    }
+
+    if (a_uDataLen == 0) {
+        return SI_OK;
     }
 
     // determine the length of the converted data
