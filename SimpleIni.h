@@ -447,14 +447,16 @@ public:
 
     /** Default constructor.
 
-        @param a_bIsUtf8     See the method SetUnicode() for details.
-        @param a_bMultiKey   See the method SetMultiKey() for details.
-        @param a_bMultiLine  See the method SetMultiLine() for details.
+        @param a_bIsUtf8            See the method SetUnicode() for details.
+        @param a_bMultiKey          See the method SetMultiKey() for details.
+        @param a_bMultiLine         See the method SetMultiLine() for details.
+        @param a_bAllowEmptyValues  See the method SetAllowEmptyValues() for details.
      */
     CSimpleIniTempl(
-        bool a_bIsUtf8    = false,
-        bool a_bMultiKey  = false,
-        bool a_bMultiLine = false
+        bool a_bIsUtf8           = false,
+        bool a_bMultiKey         = false,
+        bool a_bMultiLine        = false,
+        bool a_bAllowEmptyValues = false
         );
 
     /** Destructor */
@@ -516,18 +518,32 @@ public:
     bool IsMultiKey() const { return m_bAllowMultiKey; }
 
     /** Should data values be permitted to span multiple lines in the file. If
-        set to false then the multi-line construct <<<TAG as a value will be
-        returned as is instead of loading the data. This value may be changed
-        at any time.
+    set to false then the multi-line construct <<<TAG as a value will be
+    returned as is instead of loading the data. This value may be changed
+    at any time.
 
-        \param a_bAllowMultiLine     Allow multi-line values in the source?
-     */
+    \param a_bAllowMultiLine     Allow multi-line values in the source?
+    */
     void SetMultiLine(bool a_bAllowMultiLine = true) {
         m_bAllowMultiLine = a_bAllowMultiLine;
     }
 
     /** Query the status of multi-line data */
     bool IsMultiLine() const { return m_bAllowMultiLine; }
+
+    /** Should data values be permitted to span multiple lines in the file. If
+    set to false then the multi-line construct <<<TAG as a value will be
+    returned as is instead of loading the data. This value may be changed
+    at any time.
+
+    \param a_bAllowEmptyValues  Allow keys with no value
+    */
+    void SetAllowEmptyValues(bool a_bAllowEmptyValues = true) {
+        m_bAllowEmptyValues = a_bAllowEmptyValues;
+    }
+
+    /** Query whether empty keys are allowed */
+    bool AllowingEmpty() const { return m_bAllowEmptyValues; }
 
     /** Should spaces be added around the equals sign when writing key/value
         pairs out. When true, the result will be "key = value". When false, 
@@ -1263,6 +1279,9 @@ private:
     /** Are data values permitted to span multiple lines? */
     bool m_bAllowMultiLine;
 
+    /** Are keys permitted to have no value? */
+    bool m_bAllowEmptyValues;
+
     /** Should spaces be written out surrounding the equals sign? */
     bool m_bSpaces;
     
@@ -1280,7 +1299,8 @@ template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::CSimpleIniTempl(
     bool a_bIsUtf8,
     bool a_bAllowMultiKey,
-    bool a_bAllowMultiLine
+    bool a_bAllowMultiLine,
+    bool a_bAllowEmptyValues
     )
   : m_pData(0)
   , m_uDataLen(0)
@@ -1288,6 +1308,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::CSimpleIniTempl(
   , m_bStoreIsUtf8(a_bIsUtf8)
   , m_bAllowMultiKey(a_bAllowMultiKey)
   , m_bAllowMultiLine(a_bAllowMultiLine)
+  , m_bAllowEmptyValues(a_bAllowEmptyValues)
   , m_bSpaces(true)
   , m_nOrder(0)
 { }
@@ -1541,7 +1562,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindEntry(
     a_pComment = NULL;
 
     SI_CHAR * pTrail = NULL;
+    bool bEmptyValue = false;
     while (*a_pData) {
+
         // skip spaces and empty lines
         while (*a_pData && IsSpace(*a_pData)) {
             ++a_pData;
@@ -1603,8 +1626,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindEntry(
             ++a_pData;
         }
 
-        // if it's an invalid line, just skip it
-        if (*a_pData != '=') {
+        bEmptyValue = (*a_pData != '=');
+
+        if (bEmptyValue && !m_bAllowEmptyValues) {
             continue;
         }
 
@@ -1621,31 +1645,40 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindEntry(
         while (pTrail >= a_pKey && IsSpace(*pTrail)) {
             --pTrail;
         }
-        ++pTrail;
-        *pTrail = 0;
+		++pTrail;
 
-        // skip leading whitespace on the value
-        ++a_pData;  // safe as checked that it == '=' above
-        while (*a_pData && !IsNewLineChar(*a_pData) && IsSpace(*a_pData)) {
-            ++a_pData;
-        }
+		if (!bEmptyValue) {
+			*pTrail = 0;
 
-        // find the end of the value which is the end of this line
-        a_pVal = a_pData;
-        while (*a_pData && !IsNewLineChar(*a_pData)) {
-            ++a_pData;
-        }
+            // skip leading whitespace on the value
+            ++a_pData;  // safe as checked that it == '=' above
+            while (*a_pData && !IsNewLineChar(*a_pData) && IsSpace(*a_pData)) {
+                ++a_pData;
+            }
 
-        // remove trailing spaces from the value
-        pTrail = a_pData - 1;
-        if (*a_pData) { // prepare for the next round
-            SkipNewLine(a_pData);
+            // find the end of the value which is the end of this line
+            a_pVal = a_pData;
+            while (*a_pData && !IsNewLineChar(*a_pData)) {
+                ++a_pData;
+            }
+
+            // remove trailing spaces from the value
+            pTrail = a_pData - 1;
+            if (*a_pData) { // prepare for the next round
+                SkipNewLine(a_pData);
+            }
+            while (pTrail >= a_pVal && IsSpace(*pTrail)) {
+                --pTrail;
+            }
+            ++pTrail;
+            *pTrail = 0;
+        } else {
+			if (*a_pData) { // prepare for the next round
+				SkipNewLine(a_pData);
+			}
+			a_pVal = pTrail;
+			*pTrail = 0;
         }
-        while (pTrail >= a_pVal && IsSpace(*pTrail)) {
-            --pTrail;
-        }
-        ++pTrail;
-        *pTrail = 0;
 
         // check for multi-line entries
         if (m_bAllowMultiLine && IsMultiLineTag(a_pVal)) {
@@ -2037,7 +2070,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetLongValue(
     long nValue = a_nDefault;
     char * pszSuffix = szValue;
     if (szValue[0] == '0' && (szValue[1] == 'x' || szValue[1] == 'X')) {
-    	if (!szValue[2]) return a_nDefault;
+       if (!szValue[2]) return a_nDefault;
         nValue = strtol(&szValue[2], &pszSuffix, 16);
     }
     else {
@@ -2118,32 +2151,32 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetDoubleValue(
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error 
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetDoubleValue(
-	const SI_CHAR * a_pSection,
-	const SI_CHAR * a_pKey,
-	double          a_nValue,
-	const SI_CHAR * a_pComment,
-	bool            a_bForceReplace
-	)
+    const SI_CHAR * a_pSection,
+    const SI_CHAR * a_pKey,
+    double          a_nValue,
+    const SI_CHAR * a_pComment,
+    bool            a_bForceReplace
+    )
 {
-	// use SetValue to create sections
-	if (!a_pSection || !a_pKey) return SI_FAIL;
+    // use SetValue to create sections
+    if (!a_pSection || !a_pKey) return SI_FAIL;
 
-	// convert to an ASCII string
-	char szInput[64];
+    // convert to an ASCII string
+    char szInput[64];
 #if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
-	sprintf_s(szInput, "%f", a_nValue);
+    sprintf_s(szInput, "%f", a_nValue);
 #else // !__STDC_WANT_SECURE_LIB__
-	sprintf(szInput, "%f", a_nValue);
+    sprintf(szInput, "%f", a_nValue);
 #endif // __STDC_WANT_SECURE_LIB__
 
-	// convert to output text
-	SI_CHAR szOutput[64];
-	SI_CONVERTER c(m_bStoreIsUtf8);
-	c.ConvertFromStore(szInput, strlen(szInput) + 1, 
-		szOutput, sizeof(szOutput) / sizeof(SI_CHAR));
+    // convert to output text
+    SI_CHAR szOutput[64];
+    SI_CONVERTER c(m_bStoreIsUtf8);
+    c.ConvertFromStore(szInput, strlen(szInput) + 1, 
+        szOutput, sizeof(szOutput) / sizeof(SI_CHAR));
 
-	// actually add it
-	return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, a_bForceReplace, true);
+    // actually add it
+    return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, a_bForceReplace, true);
 }
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>

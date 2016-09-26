@@ -52,7 +52,7 @@ ini.SetValue("section", "key", "newvalue");
 
 ```c++
 // load from a data file
-CSimpleIniA ini(a_bIsUtf8, a_bUseMultiKey, a_bUseMultiLine);
+CSimpleIniA ini(a_bIsUtf8, a_bUseMultiKey, a_bUseMultiLine, a_bAllowEmptyValues);
 SI_Error rc = ini.LoadFile(a_pszFile);
 if (rc < 0) return false;
 
