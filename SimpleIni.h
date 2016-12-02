@@ -50,7 +50,7 @@
     -#  Define the appropriate symbol for the converter you wish to use and
         include the SimpleIni.h header file. If no specific converter is defined
         then the default converter is used. The default conversion mode uses
-        SI_CONVERT_WIN32 on Windows and SI_CONVERT_GENERIC on all other
+        SI_CONVERT_MSC_VER on Windows and SI_CONVERT_GENERIC on all other
         platforms. If you are using ICU then SI_CONVERT_ICU is supported on all
         platforms.
     -#  Declare an instance the appropriate class. Note that the following
@@ -63,7 +63,7 @@
             <tr><td>char        <td>Yes             <td>Yes         <td>Yes         <td>CSimpleIniCaseA
             <tr><td>wchar_t     <td>No              <td>Yes         <td>Yes         <td>CSimpleIniW
             <tr><td>wchar_t     <td>Yes             <td>Yes         <td>Yes         <td>CSimpleIniCaseW
-        <tr><th>SI_CONVERT_WIN32
+        <tr><th>SI_CONVERT_MSC_VER
             <tr><td>char        <td>No              <td>No #2       <td>Yes         <td>CSimpleIniA
             <tr><td>char        <td>Yes             <td>Yes         <td>Yes         <td>CSimpleIniCaseA
             <tr><td>wchar_t     <td>No              <td>Yes         <td>Yes         <td>CSimpleIniW
@@ -74,7 +74,7 @@
             <tr><td>UChar       <td>No              <td>Yes         <td>Yes         <td>CSimpleIniW
             <tr><td>UChar       <td>Yes             <td>Yes         <td>Yes         <td>CSimpleIniCaseW
         </table>
-        #1  On Windows you are better to use CSimpleIniA with SI_CONVERT_WIN32.<br>
+        #1  On Windows you are better to use CSimpleIniA with SI_CONVERT_MSC_VER.<br>
         #2  Only affects Windows. On Windows this uses MBCS functions and
             so may fold case incorrectly leading to uncertain results.
     -# Call LoadData() or LoadFile() to load and parse the INI configuration file
@@ -247,19 +247,19 @@ enum SI_Error {
 
 #define SI_UTF8_SIGNATURE     "\xEF\xBB\xBF"
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 # define SI_NEWLINE_A   "\r\n"
 # define SI_NEWLINE_W   L"\r\n"
-#else // !_WIN32
+#else // !_MSC_VER
 # define SI_NEWLINE_A   "\n"
 # define SI_NEWLINE_W   L"\n"
-#endif // _WIN32
+#endif // _MSC_VER
 
 #if defined(SI_CONVERT_ICU)
 # include <unicode/ustring.h>
 #endif
 
-#if defined(_WIN32)
+#if defined(_MSC_VER)
 # define SI_HAS_WIDE_FILE
 # define SI_WCHAR_T     wchar_t
 #elif defined(SI_CONVERT_ICU)
@@ -651,7 +651,7 @@ public:
         const SI_WCHAR_T *  a_pwszFile,
         bool                a_bAddSignature = true
         ) const;
-#endif // _WIN32
+#endif // _MSC_VER
 
     /** Save the INI data to a file. See Save() for details.
 
@@ -1328,7 +1328,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     )
 {
     FILE * fp = NULL;
-#if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
+#if __STDC_WANT_SECURE_LIB__ && !_MSC_VER_WCE
     fopen_s(&fp, a_pszFile, "rb");
 #else // !__STDC_WANT_SECURE_LIB__
     fp = fopen(a_pszFile, "rb");
@@ -1348,9 +1348,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     const SI_WCHAR_T * a_pwszFile
     )
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
     FILE * fp = NULL;
-#if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
+#if __STDC_WANT_SECURE_LIB__ && !_MSC_VER_WCE
     _wfopen_s(&fp, a_pwszFile, L"rb");
 #else // !__STDC_WANT_SECURE_LIB__
     fp = _wfopen(a_pwszFile, L"rb");
@@ -1359,11 +1359,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     SI_Error rc = LoadFile(fp);
     fclose(fp);
     return rc;
-#else // !_WIN32 (therefore SI_CONVERT_ICU)
+#else // !_MSC_VER (therefore SI_CONVERT_ICU)
     char szFile[256];
     u_austrncpy(szFile, a_pwszFile, sizeof(szFile));
     return LoadFile(szFile);
-#endif // _WIN32
+#endif // _MSC_VER
 }
 #endif // SI_HAS_WIDE_FILE
 
@@ -2068,7 +2068,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetLongValue(
 
     // convert to an ASCII string
     char szInput[64];
-#if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
+#if __STDC_WANT_SECURE_LIB__ && !_MSC_VER_WCE
     sprintf_s(szInput, a_bUseHex ? "0x%lx" : "%ld", a_nValue);
 #else // !__STDC_WANT_SECURE_LIB__
     sprintf(szInput, a_bUseHex ? "0x%lx" : "%ld", a_nValue);
@@ -2130,7 +2130,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetDoubleValue(
 
 	// convert to an ASCII string
 	char szInput[64];
-#if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
+#if __STDC_WANT_SECURE_LIB__ && !_MSC_VER_WCE
 	sprintf_s(szInput, "%f", a_nValue);
 #else // !__STDC_WANT_SECURE_LIB__
 	sprintf(szInput, "%f", a_nValue);
@@ -2344,7 +2344,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
     ) const
 {
     FILE * fp = NULL;
-#if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
+#if __STDC_WANT_SECURE_LIB__ && !_MSC_VER_WCE
     fopen_s(&fp, a_pszFile, "wb");
 #else // !__STDC_WANT_SECURE_LIB__
     fp = fopen(a_pszFile, "wb");
@@ -2363,9 +2363,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
     bool                a_bAddSignature
     ) const
 {
-#ifdef _WIN32
+#ifdef _MSC_VER
     FILE * fp = NULL;
-#if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
+#if __STDC_WANT_SECURE_LIB__ && !_MSC_VER_WCE
     _wfopen_s(&fp, a_pwszFile, L"wb");
 #else // !__STDC_WANT_SECURE_LIB__
     fp = _wfopen(a_pwszFile, L"wb");
@@ -2374,11 +2374,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SaveFile(
     SI_Error rc = SaveFile(fp, a_bAddSignature);
     fclose(fp);
     return rc;
-#else // !_WIN32 (therefore SI_CONVERT_ICU)
+#else // !_MSC_VER (therefore SI_CONVERT_ICU)
     char szFile[256];
     u_austrncpy(szFile, a_pwszFile, sizeof(szFile));
     return SaveFile(szFile, a_bAddSignature);
-#endif // _WIN32
+#endif // _MSC_VER
 }
 #endif // SI_HAS_WIDE_FILE
 
@@ -2666,11 +2666,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::DeleteString(
 //                          the accompanying files ConvertUTF.h/c
 //  SI_CONVERT_ICU          Use the IBM ICU conversion library. Requires
 //                          ICU headers on include path and icuuc.lib
-//  SI_CONVERT_WIN32        Use the Win32 API functions for conversion.
+//  SI_CONVERT_MSC_VER        Use the Win32 API functions for conversion.
 
-#if !defined(SI_CONVERT_GENERIC) && !defined(SI_CONVERT_WIN32) && !defined(SI_CONVERT_ICU)
-# ifdef _WIN32
-#  define SI_CONVERT_WIN32
+#if !defined(SI_CONVERT_GENERIC) && !defined(SI_CONVERT_MSC_VER) && !defined(SI_CONVERT_ICU)
+# ifdef _MSC_VER
+#  define SI_CONVERT_MSC_VER
 # else
 #  define SI_CONVERT_GENERIC
 # endif
@@ -3232,14 +3232,14 @@ public:
 
 
 // ---------------------------------------------------------------------------
-//                              SI_CONVERT_WIN32
+//                              SI_CONVERT_MSC_VER
 // ---------------------------------------------------------------------------
-#ifdef SI_CONVERT_WIN32
+#ifdef SI_CONVERT_MSC_VER
 
 #define SI_Case     SI_GenericCase
 
 // Windows CE doesn't have errno or MBCS libraries
-#ifdef _WIN32_WCE
+#ifdef _MSC_VER_WCE
 # ifndef SI_NO_MBCS
 #  define SI_NO_MBCS
 # endif
@@ -3395,7 +3395,7 @@ public:
     }
 };
 
-#endif // SI_CONVERT_WIN32
+#endif // SI_CONVERT_MSC_VER
 
 
 // ---------------------------------------------------------------------------
@@ -3434,4 +3434,3 @@ typedef CSimpleIniTempl<wchar_t,
 #endif
 
 #endif // INCLUDED_SimpleIni_h
-
