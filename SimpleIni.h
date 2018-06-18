@@ -2849,7 +2849,9 @@ public:
 #define SI_NoCase   SI_GenericNoCase
 
 #include <wchar.h>
+#ifndef EXCLUDE_CONVERSION
 #include "ConvertUTF.h"
+#endif
 
 /**
  * Converts UTF-8 to a wchar_t (or equivalent) using the Unicode reference
@@ -2927,6 +2929,7 @@ public:
         size_t          a_uOutputDataSize)
     {
         if (m_bStoreIsUtf8) {
+#ifndef EXCLUDE_CONVERSION
             // This uses the Unicode reference implementation to do the
             // conversion from UTF-8 to wchar_t. The required files are
             // ConvertUTF.h and ConvertUTF.c which should be included in
@@ -2949,6 +2952,9 @@ public:
                     lenientConversion);
             }
             return retval == conversionOK;
+#else
+            return false;
+#endif
         }
 
         // convert to wchar_t
@@ -3007,6 +3013,7 @@ public:
         )
     {
         if (m_bStoreIsUtf8) {
+#ifndef EXCLUDE_CONVERSION
             // calc input string length (SI_CHAR type and size independent)
             size_t uInputLen = 0;
             while (a_pInputData[uInputLen]) {
@@ -3036,6 +3043,9 @@ public:
                     lenientConversion);
             }
             return retval == conversionOK;
+#else
+            return false;
+#endif
         }
         else {
             size_t retval = wcstombs(a_pOutputData,
