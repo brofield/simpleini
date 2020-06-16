@@ -1749,8 +1749,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadMultiLineText(
     a_pVal = a_pData;
 
     // find the end tag. This tag must start in column 1 and be
-    // followed by a newline. No whitespace removal is done while
-    // searching for this tag.
+    // followed by a newline. We ignore any whitespace after the end
+    // tag but not whitespace before it.
     SI_CHAR cEndOfLineChar = *a_pData;
     for(;;) {
         // if we are loading comments then we need a comment character as
@@ -1806,10 +1806,18 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadMultiLineText(
         // if are looking for a tag then do the check now. This is done before
         // checking for end of the data, so that if we have the tag at the end
         // of the data then the tag is removed correctly.
-        if (a_pTagName &&
-            (!IsLess(pDataLine, a_pTagName) && !IsLess(a_pTagName, pDataLine)))
-        {
-            break;
+        if (a_pTagName) {
+            // strip whitespace from the end of this tag
+            SI_CHAR* pc = a_pData - 1;
+            while (pc > pDataLine && IsSpace(*pc)) --pc;
+            SI_CHAR ch = *++pc;
+            *pc = 0;
+
+            if (!IsLess(pDataLine, a_pTagName) && !IsLess(a_pTagName, pDataLine)) {
+                break;
+            }
+
+            *pc = ch;
         }
 
         // if we are at the end of the data then we just automatically end
