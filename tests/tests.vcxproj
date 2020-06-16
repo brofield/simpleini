@@ -37,6 +37,7 @@
     <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ts-bugfix.cpp" />
     <ClCompile Include="ts-roundtrip.cpp" />
     <ClCompile Include="ts-snippets.cpp" />
     <ClCompile Include="ts-utf8.cpp" />

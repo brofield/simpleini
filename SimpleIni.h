@@ -2424,6 +2424,19 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
     oSections.sort(typename Entry::LoadOrder());
 #endif
 
+    // if there is an empty section name, then it must be written out first
+    // regardless of the load order
+    typename TNamesDepend::iterator is = oSections.begin();
+    for (; is != oSections.end(); ++is) {
+        if (!*is->pItem) {
+            // move the empty section name to the front of the section list
+            if (is != oSections.begin()) {
+                oSections.splice(oSections.begin(), oSections, is, std::next(is));
+            }
+            break;
+        }
+    }
+
     // write the file comment if we have one
     bool bNeedNewLine = false;
     if (m_pFileComment) {
