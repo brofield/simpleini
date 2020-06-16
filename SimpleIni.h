@@ -2668,13 +2668,15 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::DeleteString(
 // SimpleIni.h, set the converter that you wish you use by defining one of the
 // following symbols.
 //
+//  SI_NO_CONVERSION        Do not make the "W" wide character version of the 
+//                          library available. Only CSimpleIniA etc is defined.
 //  SI_CONVERT_GENERIC      Use the Unicode reference conversion library in
 //                          the accompanying files ConvertUTF.h/c
 //  SI_CONVERT_ICU          Use the IBM ICU conversion library. Requires
 //                          ICU headers on include path and icuuc.lib
 //  SI_CONVERT_WIN32        Use the Win32 API functions for conversion.
 
-#if !defined(SI_CONVERT_GENERIC) && !defined(SI_CONVERT_WIN32) && !defined(SI_CONVERT_ICU)
+#if !defined(SI_NO_CONVERSION) && !defined(SI_CONVERT_GENERIC) && !defined(SI_CONVERT_WIN32) && !defined(SI_CONVERT_ICU)
 # ifdef _WIN32
 #  define SI_CONVERT_WIN32
 # else
@@ -3413,27 +3415,35 @@ typedef CSimpleIniTempl<char,
 typedef CSimpleIniTempl<char,
     SI_Case<char>,SI_ConvertA<char> >                   CSimpleIniCaseA;
 
-#if defined(SI_CONVERT_ICU)
+#if defined(SI_NO_CONVERSION)
+// if there is no wide char conversion then we don't need to define the 
+// widechar "W" versions of CSimpleIni
+# define CSimpleIni      CSimpleIniA
+# define CSimpleIniCase  CSimpleIniCaseA
+# define SI_NEWLINE      SI_NEWLINE_A
+#else
+# if defined(SI_CONVERT_ICU)
 typedef CSimpleIniTempl<UChar,
     SI_NoCase<UChar>,SI_ConvertW<UChar> >               CSimpleIniW;
 typedef CSimpleIniTempl<UChar,
     SI_Case<UChar>,SI_ConvertW<UChar> >                 CSimpleIniCaseW;
-#else
+# else
 typedef CSimpleIniTempl<wchar_t,
     SI_NoCase<wchar_t>,SI_ConvertW<wchar_t> >           CSimpleIniW;
 typedef CSimpleIniTempl<wchar_t,
     SI_Case<wchar_t>,SI_ConvertW<wchar_t> >             CSimpleIniCaseW;
-#endif
+# endif
 
-#ifdef _UNICODE
-# define CSimpleIni      CSimpleIniW
-# define CSimpleIniCase  CSimpleIniCaseW
-# define SI_NEWLINE      SI_NEWLINE_W
-#else // !_UNICODE
-# define CSimpleIni      CSimpleIniA
-# define CSimpleIniCase  CSimpleIniCaseA
-# define SI_NEWLINE      SI_NEWLINE_A
-#endif // _UNICODE
+# ifdef _UNICODE
+#  define CSimpleIni      CSimpleIniW
+#  define CSimpleIniCase  CSimpleIniCaseW
+#  define SI_NEWLINE      SI_NEWLINE_W
+# else // !_UNICODE 
+#  define CSimpleIni      CSimpleIniA
+#  define CSimpleIniCase  CSimpleIniCaseA
+#  define SI_NEWLINE      SI_NEWLINE_A
+# endif // _UNICODE
+#endif
 
 #ifdef _MSC_VER
 # pragma warning (pop)
