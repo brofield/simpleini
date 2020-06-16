@@ -21,7 +21,7 @@
 //#define SI_CONVERT_GENERIC
 //#define SI_CONVERT_ICU
 //#define SI_CONVERT_WIN32
-#include "SimpleIni.h"
+#include "../SimpleIni.h"
 
 #ifdef SI_CONVERT_ICU
 // if converting using ICU then we need the ICU library

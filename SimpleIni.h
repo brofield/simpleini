@@ -3,7 +3,7 @@
     <table>
         <tr><th>Library     <td>SimpleIni
         <tr><th>File        <td>SimpleIni.h
-        <tr><th>Author      <td>Brodie Thiesfield [code at jellycan dot com]
+        <tr><th>Author      <td>Brodie Thiesfield [brofield at gmail dot com]
         <tr><th>Source      <td>https://github.com/brofield/simpleini
         <tr><th>Version     <td>4.17
     </table>
@@ -1929,6 +1929,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
     // check for existence of the key
     TKeyVal & keyval = iSection->second;
     typename TKeyVal::iterator iKey = keyval.find(a_pKey);
+    bInserted = iKey == keyval.end();
 
     // remove all existing entries but save the load order and
     // comment of the first entry
@@ -1975,8 +1976,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
         }
         typename TKeyVal::value_type oEntry(oKey, static_cast<const SI_CHAR *>(NULL));
         iKey = keyval.insert(oEntry);
-        bInserted = true;
     }
+
     iKey->second = a_pValue;
     return bInserted ? SI_INSERTED : SI_UPDATED;
 }

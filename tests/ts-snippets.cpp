@@ -1,43 +1,10 @@
-simpleini
-=========
+#include "pch.h"
+#include "../SimpleIni.h"
 
-[![TravisCI Status](https://travis-ci.org/brofield/simpleini.svg?branch=master)](https://travis-ci.org/brofield/simpleini)
 
-A cross-platform library that provides a simple API to read and write INI-style configuration files. It supports data files in ASCII, MBCS and Unicode. It is designed explicitly to be portable to any platform and has been tested on Windows, WinCE and Linux. Released as open-source and free using the MIT licence.
+// ### SIMPLE USAGE
 
-# Feature Summary
-
-- MIT Licence allows free use in all software (including GPL and commercial)
-- multi-platform (Windows 95 to Windows 10, Windows CE, Linux, Unix)
-- loading and saving of INI-style configuration files
-- configuration files can have any newline format on all platforms
-- liberal acceptance of file format
-  * key/values with no section
-  * removal of whitespace around sections, keys and values
-- support for multi-line values (values with embedded newline characters)
-- optional support for multiple keys with the same name
-- optional case-insensitive sections and keys (for ASCII characters only)
-- saves files with sections and keys in the same order as they were loaded
-- preserves comments on the file, section and keys where possible
-- supports both char or wchar_t programming interfaces
-- supports both MBCS (system locale) and UTF-8 file encodings
-- system locale does not need to be UTF-8 on Linux/Unix to load UTF-8 file
-- support for non-ASCII characters in section, keys, values and comments
-- support for non-standard character types or file encodings via user-written converter classes
-- support for adding/modifying values programmatically
-- should compile with no warnings in most compilers
-
-# Documentation
-
-Full documentation of the interface is available in doxygen format.
-
-# Examples
-
-These snippets are included with the distribution in the automatic tests as ts-snippets.cpp.
-
-### SIMPLE USAGE
-
-```c++
+TEST(TestSnippets, TestSimple) {
 	// simple demonstration
 
 	CSimpleIniA ini;
@@ -55,28 +22,46 @@ These snippets are included with the distribution in the automatic tests as ts-s
 
 	pv = ini.GetValue("section", "key", "default");
 	ASSERT_STREQ(pv, "newvalue");
-```
+}
 
-### LOADING DATA
 
-```c++
+// ### LOADING DATA
+
+TEST(TestSnippets, TestLoadFile) {
 	// load from a data file
 	CSimpleIniA ini;
 	SI_Error rc = ini.LoadFile("example.ini");
 	if (rc < 0) { /* handle error */ };
 	ASSERT_EQ(rc, SI_OK);
+}
 
+TEST(TestSnippets, TestLoadString) {
 	// load from a string
 	const std::string example = "[section]\nkey = value\n";
 	CSimpleIniA ini;
 	SI_Error rc = ini.LoadData(example);
 	if (rc < 0) { /* handle error */ };
 	ASSERT_EQ(rc, SI_OK);
-```
+}
 
-### GETTING SECTIONS AND KEYS
 
-```c++
+// ### GETTING SECTIONS AND KEYS
+
+TEST(TestSnippets, TestSectionsAndKeys) {
+	const std::string example =
+		"[section1]\n"
+		"key1 = value1\n"
+		"key2 = value2\n"
+		"\n"
+		"[section2]\n"
+		"[section3]\n";
+
+	CSimpleIniA ini;
+	SI_Error rc = ini.LoadData(example);
+	ASSERT_EQ(rc, SI_OK);
+	
+
+
 	// get all sections
 	CSimpleIniA::TNamesDepend sections;
 	ini.GetAllSections(sections);
@@ -84,11 +69,48 @@ These snippets are included with the distribution in the automatic tests as ts-s
 	// get all keys in a section
 	CSimpleIniA::TNamesDepend keys;
 	ini.GetAllKeys("section1", keys);
-```
 
-### GETTING VALUES
 
-```c++
+
+	const char* expectedSections[] = { "section1", "section2", "section3", nullptr };
+	const char* expectedKeys[] = { "key1", "key2", nullptr };
+
+	CSimpleIniA::TNamesDepend::const_iterator it;
+	int i;
+
+	for (i = 0, it = sections.begin(); it != sections.end(); ++i, ++it) {
+		ASSERT_NE(expectedSections[i], nullptr);
+		ASSERT_STREQ(expectedSections[i], it->pItem);
+	}
+	ASSERT_EQ(expectedSections[i], nullptr);
+
+	for (i = 0, it = keys.begin(); it != keys.end(); ++i, ++it) {
+		ASSERT_NE(expectedKeys[i], nullptr);
+		ASSERT_STREQ(expectedKeys[i], it->pItem);
+	}
+	ASSERT_EQ(expectedKeys[i], nullptr);
+}
+
+
+// ### GETTING VALUES
+
+TEST(TestSnippets, TestGettingValues) {
+	const std::string example =
+		"[section1]\n"
+		"key1 = value1\n"
+		"key2 = value2.1\n"
+		"key2 = value2.2\n"
+		"\n"
+		"[section2]\n"
+		"[section3]\n";
+
+	bool utf8 = true;
+	bool multiKey = true;
+	CSimpleIniA ini(utf8, multiKey);
+	SI_Error rc = ini.LoadData(example);
+	ASSERT_EQ(rc, SI_OK);
+
+
 	// get the value of a key that doesn't exist
 	const char* pv;
 	pv = ini.GetValue("section1", "key99");
@@ -123,11 +145,27 @@ These snippets are included with the distribution in the automatic tests as ts-s
 	for (it = values.begin(); it != values.end(); ++it) {
 		printf("value = '%s'\n", it->pItem);
 	}
-```
 
-### MODIFYING DATA
 
-```c++
+	int i;
+	const char* expectedValues[] = { "value2.1", "value2.2", nullptr };
+	for (i = 0, it = values.begin(); it != values.end(); ++it, ++i) {
+		ASSERT_NE(expectedValues[i], nullptr);
+		ASSERT_STREQ(expectedValues[i], it->pItem);
+	}
+	ASSERT_EQ(expectedValues[i], nullptr);
+}
+
+
+// ### MODIFYING DATA
+
+TEST(TestSnippets, TestModifyingData) {
+	bool utf8 = true;
+	bool multiKey = false;
+	CSimpleIniA ini(utf8, multiKey);
+	SI_Error rc;
+
+
 	// add a new section 
 	rc = ini.SetValue("section1", nullptr, nullptr);
 	if (rc < 0) { /* handle error */ };
@@ -160,11 +198,29 @@ These snippets are included with the distribution in the automatic tests as ts-s
 	// ensure it is set to expected value
 	pv = ini.GetValue("section2", "key1", nullptr);
 	ASSERT_STREQ(pv, "value2");
-```
+}
 
-### DELETING DATA
 
-```c++
+// ### DELETING DATA
+
+TEST(TestSnippets, TestDeletingData) {
+	const std::string example =
+		"[section1]\n"
+		"key1 = value1\n"
+		"key2 = value2\n"
+		"\n"
+		"[section2]\n"
+		"key1 = value1\n"
+		"key2 = value2\n"
+		"\n"
+		"[section3]\n";
+
+	bool utf8 = true;
+	CSimpleIniA ini(utf8);
+	SI_Error rc = ini.LoadData(example);
+	ASSERT_EQ(rc, SI_OK);
+
+
 	// deleting a key from a section. Optionally the entire
 	// section may be deleted if it is now empty.
 	bool done, deleteSectionIfEmpty = true;
@@ -178,11 +234,17 @@ These snippets are included with the distribution in the automatic tests as ts-s
 	ASSERT_EQ(done, true);
 	done = ini.Delete("section2", nullptr);
 	ASSERT_EQ(done, false);
-```
+}
 
-### SAVING DATA
 
-```c++
+// ### SAVING DATA
+
+TEST(TestSnippets, TestSavingData) {
+	bool utf8 = true;
+	CSimpleIniA ini(utf8);
+	SI_Error rc;
+
+
 	// save the data to a string
 	std::string data;
 	rc = ini.Save(data);
@@ -193,4 +255,5 @@ These snippets are included with the distribution in the automatic tests as ts-s
 	rc = ini.SaveFile("example2.ini");
 	if (rc < 0) { /* handle error */ };
 	ASSERT_EQ(rc, SI_OK);
-```
+}
+
