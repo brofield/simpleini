@@ -3,7 +3,7 @@
 
 class TestUTF8 : public ::testing::Test {
 protected:
-	void TestUTF8::SetUp() override;
+	void SetUp() override;
 protected:
 	CSimpleIniA ini;
 };

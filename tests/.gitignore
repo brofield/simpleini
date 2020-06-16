@@ -1,1 +1,5 @@
 example2.ini
+
+tests
+*.o
+

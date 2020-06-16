@@ -4,7 +4,7 @@
 
 class TestRoundTrip : public ::testing::Test {
 protected:
-	void TestRoundTrip::SetUp() override;
+	void SetUp() override;
 	void TestMulti();
 	void TestBOM(bool useBOM);
 

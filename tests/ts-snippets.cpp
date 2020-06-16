@@ -143,7 +143,7 @@ TEST(TestSnippets, TestGettingValues) {
 	// output all of the items
 	CSimpleIniA::TNamesDepend::const_iterator it;
 	for (it = values.begin(); it != values.end(); ++it) {
-		printf("value = '%s'\n", it->pItem);
+		//printf("value = '%s'\n", it->pItem);
 	}
 
 
