@@ -1,7 +1,8 @@
 simpleini
 =========
 
-[![TravisCI Status](https://travis-ci.org/brofield/simpleini.svg?branch=master)](https://travis-ci.org/brofield/simpleini)
+[![Build Status](https://travis-ci.org/brofield/simpleini.svg?branch=master)](https://travis-ci.org/brofield/simpleini)
+
 
 A cross-platform library that provides a simple API to read and write INI-style configuration files. It supports data files in ASCII, MBCS and Unicode. It is designed explicitly to be portable to any platform and has been tested on Windows, WinCE and Linux. Released as open-source and free using the MIT licence.
 
