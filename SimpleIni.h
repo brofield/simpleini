@@ -234,16 +234,16 @@
 # define SI_ASSERT(x)
 #endif
 
-enum SI_Error {
-    SI_OK       =  0,   //!< No error
-    SI_UPDATED  =  1,   //!< An existing value was updated
-    SI_INSERTED =  2,   //!< A new value was inserted
+using SI_Error = int;
 
-    // note: test for any error with (retval < 0)
-    SI_FAIL     = -1,   //!< Generic failure
-    SI_NOMEM    = -2,   //!< Out of memory error
-    SI_FILE     = -3    //!< File error (see errno for detail error)
-};
+constexpr int SI_OK = 0;        //!< No error
+constexpr int SI_UPDATED = 1;   //!< An existing value was updated
+constexpr int SI_INSERTED = 2;  //!< A new value was inserted
+
+// note: test for any error with (retval < 0)
+constexpr int SI_FAIL = -1;    //!< Generic failure
+constexpr int SI_NOMEM = -2;   //!< Out of memory error
+constexpr int SI_FILE = -3;    //!< File error (see errno for detail error)
 
 #define SI_UTF8_SIGNATURE     "\xEF\xBB\xBF"
 
@@ -1387,7 +1387,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     }
     
     // allocate and ensure NULL terminated
-    char * pData = new(std::nothrow) char[lSize+1];
+    char * pData = new(std::nothrow) char[lSize+static_cast<size_t>(1)];
     if (!pData) {
         return SI_NOMEM;
     }
