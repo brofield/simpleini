@@ -542,6 +542,18 @@ public:
     /** Query the status of spaces output */
     bool UsingSpaces() const { return m_bSpaces; }
     
+
+    /** Should we recognise and parse quotes in single line values?
+
+        \param a_bParseQuotes  Parse quoted data in values?
+     */
+    void SetQuotes(bool a_bParseQuotes = true) {
+        m_bParseQuotes = a_bParseQuotes;
+    }
+
+    /** Are we permitting keys and values to be quoted? */
+    bool UsingQuotes() const { return m_bParseQuotes; }
+
     /*-----------------------------------------------------------------------*/
     /** @}
         @{ @name Loading INI Data */
@@ -1214,6 +1226,7 @@ private:
 
     bool IsMultiLineTag(const SI_CHAR * a_pData) const;
     bool IsMultiLineData(const SI_CHAR * a_pData) const;
+    bool IsSingleLineQuotedValue(const SI_CHAR* a_pData) const;
     bool LoadMultiLineText(
         SI_CHAR *&          a_pData,
         const SI_CHAR *&    a_pVal,
@@ -1266,6 +1279,9 @@ private:
     /** Should spaces be written out surrounding the equals sign? */
     bool m_bSpaces;
     
+    /** Should quoted data in values be recognized and parsed? */
+    bool m_bParseQuotes;
+
     /** Next order value, used to ensure sections and keys are output in the
         same order that they are loaded/added.
      */
@@ -1289,6 +1305,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::CSimpleIniTempl(
   , m_bAllowMultiKey(a_bAllowMultiKey)
   , m_bAllowMultiLine(a_bAllowMultiLine)
   , m_bSpaces(true)
+  , m_bParseQuotes(false)
   , m_nOrder(0)
 { }
 
@@ -1659,6 +1676,15 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindEntry(
             return LoadMultiLineText(a_pData, a_pVal, pTagName);
         }
 
+        // check for quoted values, we are not supporting escapes in quoted values (yet)
+        if (m_bParseQuotes) {
+            --pTrail;
+            if (pTrail > a_pVal && *a_pVal == '"' && *pTrail == '"') {
+                ++a_pVal;
+                *pTrail = 0;
+            }
+        }
+
         // return the standard entry
         return true;
     }
@@ -1704,6 +1730,41 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::IsMultiLineData(
     while (*a_pData) {
         if (IsNewLineChar(*a_pData)) {
             return true;
+        }
+        ++a_pData;
+    }
+
+    // check for suffix
+    if (IsSpace(*--a_pData)) {
+        return true;
+    }
+
+    return false;
+}
+
+template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
+bool
+CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::IsSingleLineQuotedValue(
+    const SI_CHAR* a_pData
+) const
+{
+    // data needs quoting if it starts or ends with whitespace 
+    // and doesn't have embedded newlines
+
+    // empty string
+    if (!*a_pData) {
+        return false;
+    }
+
+    // check for prefix
+    if (IsSpace(*a_pData)) {
+        return true;
+    }
+
+    // embedded newlines
+    while (*a_pData) {
+        if (IsNewLineChar(*a_pData)) {
+            return false;
         }
         ++a_pData;
     }
@@ -2525,7 +2586,14 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
                     return SI_FAIL;
                 }
                 a_oOutput.Write(m_bSpaces ? " = " : "=");
-                if (m_bAllowMultiLine && IsMultiLineData(iValue->pItem)) {
+                if (m_bParseQuotes && IsSingleLineQuotedValue(iValue->pItem)) {
+                    // the only way to preserve external whitespace on a value (i.e. before or after)
+                    // is to quote it. This is simple quoting, we don't escape quotes within the data. 
+                    a_oOutput.Write("\"");
+                    a_oOutput.Write(convert.Data());
+                    a_oOutput.Write("\"");
+                }
+                else if (m_bAllowMultiLine && IsMultiLineData(iValue->pItem)) {
                     // multi-line data needs to be processed specially to ensure
                     // that we use the correct newline format for the current system
                     a_oOutput.Write("<<<END_OF_TEXT" SI_NEWLINE_A);
