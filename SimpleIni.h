@@ -234,16 +234,16 @@
 # define SI_ASSERT(x)
 #endif
 
-enum SI_Error {
-    SI_OK       =  0,   //!< No error
-    SI_UPDATED  =  1,   //!< An existing value was updated
-    SI_INSERTED =  2,   //!< A new value was inserted
+using SI_Error = int;
 
-    // note: test for any error with (retval < 0)
-    SI_FAIL     = -1,   //!< Generic failure
-    SI_NOMEM    = -2,   //!< Out of memory error
-    SI_FILE     = -3    //!< File error (see errno for detail error)
-};
+constexpr int SI_OK = 0;        //!< No error
+constexpr int SI_UPDATED = 1;   //!< An existing value was updated
+constexpr int SI_INSERTED = 2;  //!< A new value was inserted
+
+// note: test for any error with (retval < 0)
+constexpr int SI_FAIL = -1;     //!< Generic failure
+constexpr int SI_NOMEM = -2;    //!< Out of memory error
+constexpr int SI_FILE = -3;     //!< File error (see errno for detail error)
 
 #define SI_UTF8_SIGNATURE     "\xEF\xBB\xBF"
 
@@ -553,6 +553,23 @@ public:
 
     /** Are we permitting keys and values to be quoted? */
     bool UsingQuotes() const { return m_bParseQuotes; }
+
+    /** When reading/writing an ini file, do we require every key to have an equals
+        sign to delineate a valid key value. If false, then every valid key must
+        have an equals sign and any lines without an equals sign is ignored. If
+        true then keys do not require an equals sign to be considered a key. Note 
+        that this means that any non-commented line of text would become a key.
+
+        \param a_bAllowKeyOnly  Permit keys without an equals sign or value.
+     */
+    void SetAllowKeyOnly(bool a_bAllowKeyOnly = true) {
+        m_bAllowKeyOnly = a_bAllowKeyOnly;
+    }
+
+    /** Do we allow keys to exist without a value or equals sign? */
+    bool GetAllowKeyOnly() const { return m_bAllowKeyOnly; }
+
+
 
     /*-----------------------------------------------------------------------*/
     /** @}
@@ -1282,6 +1299,9 @@ private:
     /** Should quoted data in values be recognized and parsed? */
     bool m_bParseQuotes;
 
+    /** Do keys always need to have an equals sign when reading/writing? */
+    bool m_bAllowKeyOnly;
+
     /** Next order value, used to ensure sections and keys are output in the
         same order that they are loaded/added.
      */
@@ -1306,6 +1326,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::CSimpleIniTempl(
   , m_bAllowMultiLine(a_bAllowMultiLine)
   , m_bSpaces(true)
   , m_bParseQuotes(false)
+  , m_bAllowKeyOnly(false)
   , m_nOrder(0)
 { }
 
@@ -1404,7 +1425,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
     }
     
     // allocate and ensure NULL terminated
-    char * pData = new(std::nothrow) char[lSize+1];
+    char * pData = new(std::nothrow) char[lSize+static_cast<size_t>(1)];
     if (!pData) {
         return SI_NOMEM;
     }
@@ -1562,6 +1583,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindEntry(
 {
     a_pComment = NULL;
 
+    bool bHaveValue = false;
     SI_CHAR * pTrail = NULL;
     while (*a_pData) {
         // skip spaces and empty lines
@@ -1619,19 +1641,20 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindEntry(
         }
 
         // find the end of the key name (it may contain spaces)
-        // and convert it to lowercase as necessary
         a_pKey = a_pData;
         while (*a_pData && *a_pData != '=' && !IsNewLineChar(*a_pData)) {
             ++a_pData;
         }
+        // *a_pData is null, equals, or newline
 
-        // if it's an invalid line, just skip it
-        if (*a_pData != '=') {
+        // if no value and we don't allow no value, then invalid
+        bHaveValue = (*a_pData == '=');
+        if (!bHaveValue && !m_bAllowKeyOnly) {
             continue;
         }
 
         // empty keys are invalid
-        if (a_pKey == a_pData) {
+        if (bHaveValue && a_pKey == a_pData) {
             while (*a_pData && !IsNewLineChar(*a_pData)) {
                 ++a_pData;
             }
@@ -1644,45 +1667,56 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::FindEntry(
             --pTrail;
         }
         ++pTrail;
-        *pTrail = 0;
 
-        // skip leading whitespace on the value
-        ++a_pData;  // safe as checked that it == '=' above
-        while (*a_pData && !IsNewLineChar(*a_pData) && IsSpace(*a_pData)) {
-            ++a_pData;
-        }
+        if (bHaveValue) {
+            // process the value 
+            *pTrail = 0;
 
-        // find the end of the value which is the end of this line
-        a_pVal = a_pData;
-        while (*a_pData && !IsNewLineChar(*a_pData)) {
-            ++a_pData;
-        }
-
-        // remove trailing spaces from the value
-        pTrail = a_pData - 1;
-        if (*a_pData) { // prepare for the next round
-            SkipNewLine(a_pData);
-        }
-        while (pTrail >= a_pVal && IsSpace(*pTrail)) {
-            --pTrail;
-        }
-        ++pTrail;
-        *pTrail = 0;
-
-        // check for multi-line entries
-        if (m_bAllowMultiLine && IsMultiLineTag(a_pVal)) {
-            // skip the "<<<" to get the tag that will end the multiline
-            const SI_CHAR * pTagName = a_pVal + 3;
-            return LoadMultiLineText(a_pData, a_pVal, pTagName);
-        }
-
-        // check for quoted values, we are not supporting escapes in quoted values (yet)
-        if (m_bParseQuotes) {
-            --pTrail;
-            if (pTrail > a_pVal && *a_pVal == '"' && *pTrail == '"') {
-                ++a_pVal;
-                *pTrail = 0;
+            // skip leading whitespace on the value
+            ++a_pData;  // safe as checked that it == '=' above
+            while (*a_pData && !IsNewLineChar(*a_pData) && IsSpace(*a_pData)) {
+                ++a_pData;
             }
+
+            // find the end of the value which is the end of this line
+            a_pVal = a_pData;
+            while (*a_pData && !IsNewLineChar(*a_pData)) {
+                ++a_pData;
+            }
+
+            // remove trailing spaces from the value
+            pTrail = a_pData - 1;
+            if (*a_pData) { // prepare for the next round
+                SkipNewLine(a_pData);
+            }
+            while (pTrail >= a_pVal && IsSpace(*pTrail)) {
+                --pTrail;
+            }
+            ++pTrail;
+            *pTrail = 0;
+
+            // check for multi-line entries
+            if (m_bAllowMultiLine && IsMultiLineTag(a_pVal)) {
+                // skip the "<<<" to get the tag that will end the multiline
+                const SI_CHAR* pTagName = a_pVal + 3;
+                return LoadMultiLineText(a_pData, a_pVal, pTagName);
+            }
+
+            // check for quoted values, we are not supporting escapes in quoted values (yet)
+            if (m_bParseQuotes) {
+                --pTrail;
+                if (pTrail > a_pVal && *a_pVal == '"' && *pTrail == '"') {
+                    ++a_pVal;
+                    *pTrail = 0;
+                }
+            }
+        }
+        else {
+            // no value to process, just prepare for the next
+            if (*a_pData) { 
+                SkipNewLine(a_pData);
+            }
+            *pTrail = 0;
         }
 
         // return the standard entry
@@ -2581,29 +2615,31 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::Save(
                 }
                 a_oOutput.Write(convert.Data());
 
-                // write the value
-                if (!convert.ConvertToStore(iValue->pItem)) {
-                    return SI_FAIL;
-                }
-                a_oOutput.Write(m_bSpaces ? " = " : "=");
-                if (m_bParseQuotes && IsSingleLineQuotedValue(iValue->pItem)) {
-                    // the only way to preserve external whitespace on a value (i.e. before or after)
-                    // is to quote it. This is simple quoting, we don't escape quotes within the data. 
-                    a_oOutput.Write("\"");
-                    a_oOutput.Write(convert.Data());
-                    a_oOutput.Write("\"");
-                }
-                else if (m_bAllowMultiLine && IsMultiLineData(iValue->pItem)) {
-                    // multi-line data needs to be processed specially to ensure
-                    // that we use the correct newline format for the current system
-                    a_oOutput.Write("<<<END_OF_TEXT" SI_NEWLINE_A);
-                    if (!OutputMultiLineText(a_oOutput, convert, iValue->pItem)) {
+                // write the value as long 
+                if (*iValue->pItem || !m_bAllowKeyOnly) {
+                    if (!convert.ConvertToStore(iValue->pItem)) {
                         return SI_FAIL;
                     }
-                    a_oOutput.Write("END_OF_TEXT");
-                }
-                else {
-                    a_oOutput.Write(convert.Data());
+                    a_oOutput.Write(m_bSpaces ? " = " : "=");
+                    if (m_bParseQuotes && IsSingleLineQuotedValue(iValue->pItem)) {
+                        // the only way to preserve external whitespace on a value (i.e. before or after)
+                        // is to quote it. This is simple quoting, we don't escape quotes within the data. 
+                        a_oOutput.Write("\"");
+                        a_oOutput.Write(convert.Data());
+                        a_oOutput.Write("\"");
+                    }
+                    else if (m_bAllowMultiLine && IsMultiLineData(iValue->pItem)) {
+                        // multi-line data needs to be processed specially to ensure
+                        // that we use the correct newline format for the current system
+                        a_oOutput.Write("<<<END_OF_TEXT" SI_NEWLINE_A);
+                        if (!OutputMultiLineText(a_oOutput, convert, iValue->pItem)) {
+                            return SI_FAIL;
+                        }
+                        a_oOutput.Write("END_OF_TEXT");
+                    }
+                    else {
+                        a_oOutput.Write(convert.Data());
+                    }
                 }
                 a_oOutput.Write(SI_NEWLINE_A);
             }
