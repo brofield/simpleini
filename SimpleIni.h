@@ -897,6 +897,17 @@ public:
         const SI_CHAR * a_pDefault     = NULL,
         bool *          a_pHasMultiple = NULL
         ) const;
+    /** Check if Key Exists 
+
+    @param a_pSection       Section to search
+    @param a_pKey           Key to search for
+
+    @return true = Key exists; fase = Key not found
+ */
+    const bool KeyExists(
+        const SI_CHAR* a_pSection,
+        const SI_CHAR* a_pKey
+    ) const;
 
     /** Retrieve a numeric value for a specific key. If multiple keys are enabled
         (see SetMultiKey) then only the first value associated with that key
@@ -2084,6 +2095,30 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
     iKey->second = a_pValue;
     return bInserted ? SI_INSERTED : SI_UPDATED;
 }
+	template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
+	const bool
+		CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::KeyExists(
+			const SI_CHAR* a_pSection,
+			const SI_CHAR* a_pKey
+		) const
+	{
+		if (!a_pSection || !a_pKey)
+		{
+			return false;
+		}
+		typename TSection::const_iterator iSection = m_data.find(a_pSection);
+		if (iSection == m_data.end())
+		{
+			return false;
+		}
+		typename TKeyVal::const_iterator iKeyVal = iSection->second.find(a_pKey);
+		if (iKeyVal == iSection->second.end())
+		{
+			return false;
+		}
+
+		return true;
+	}
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 const SI_CHAR *

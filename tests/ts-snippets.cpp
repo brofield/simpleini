@@ -156,6 +156,36 @@ TEST(TestSnippets, TestGettingValues) {
 	ASSERT_EQ(expectedValues[i], nullptr);
 }
 
+// ### VALUE EXISTS
+TEST(TestSnippets, TestValueExists)
+{
+	const std::string example =
+		"[section1]\n"
+		"key1 = 2.2\n"
+		"[section2]\n"
+		"key1 = value1\n"
+		"key2 = value2\n"
+		"[section3]\n"
+		"key15 = true\n";
+
+	bool utf8 = true;
+	bool multiKey = true;
+	CSimpleIniA ini(utf8, multiKey);
+	SI_Error rc = ini.LoadData(example);
+	ASSERT_EQ(rc, SI_OK);
+
+	// Check for none existing Key
+	EXPECT_FALSE(ini.KeyExists("section1", "key42"));
+
+
+	// Check for diferent Key Types
+	EXPECT_TRUE(ini.KeyExists("section1", "key1"));
+	EXPECT_TRUE(ini.KeyExists("section2", "key2"));
+	EXPECT_TRUE(ini.KeyExists("section3", "key15"));
+
+
+}
+
 
 // ### MODIFYING DATA
 
