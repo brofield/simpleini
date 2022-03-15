@@ -162,7 +162,9 @@ TEST_F(TestRoundTrip, TestWithoutBOM) {
 	ASSERT_STREQ(expected.c_str(), output.c_str());
 }
 
-TEST_F(TestRoundTrip, TestDanglingKeys1) {
+TEST_F(TestRoundTrip, TestAllowKeyOnly1) {
+	ini.SetAllowKeyOnly(false);
+
 	input =
 		"[section1]\n"
 		"key1 = string\n"
@@ -193,11 +195,14 @@ TEST_F(TestRoundTrip, TestDanglingKeys1) {
 	ASSERT_STREQ(expect.c_str(), output.c_str());
 }
 
-TEST_F(TestRoundTrip, TestDanglingKeys2) {
-	ini.SetAllowKeyOnly();
+TEST_F(TestRoundTrip, TestAllowKeyOnly2) {
+	ini.SetAllowKeyOnly(true);
 
 	input =
 		"[section1]\n"
+		"key1\n"
+		"key2\n"
+		"[section2]\n"
 		"key1 = string\n"
 		"key2 = \n"
 		"key3= \n"
@@ -212,6 +217,10 @@ TEST_F(TestRoundTrip, TestDanglingKeys2) {
 
 	std::string expect =
 		"[section1]\n"
+		"key1\n"
+		"key2\n"
+		"\n\n"
+		"[section2]\n"
 		"key1 = string\n"
 		"key2\n"
 		"key3\n"

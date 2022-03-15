@@ -1275,6 +1275,9 @@ private:
     /** File comment for this data, if one exists. */
     const SI_CHAR * m_pFileComment;
 
+    /** constant empty string */
+    const SI_CHAR m_cEmptyString;
+
     /** Parsed INI data. Section -> (Key -> Value). */
     TSection m_data;
 
@@ -1321,6 +1324,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::CSimpleIniTempl(
   : m_pData(0)
   , m_uDataLen(0)
   , m_pFileComment(NULL)
+  , m_cEmptyString(0)
   , m_bStoreIsUtf8(a_bIsUtf8)
   , m_bAllowMultiKey(a_bAllowMultiKey)
   , m_bAllowMultiLine(a_bAllowMultiLine)
@@ -2014,7 +2018,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
 
         // only set the comment if this is a section only entry
         Entry oSection(a_pSection, ++m_nOrder);
-        if (a_pComment && (!a_pKey || !a_pValue)) {
+        if (a_pComment && !a_pKey) {
             oSection.pComment = a_pComment;
         }
 
@@ -2024,8 +2028,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
         iSection = i.first;
         bInserted = true;
     }
-    if (!a_pKey || !a_pValue) {
-        // section only entries are specified with pItem and pVal as NULL
+    if (!a_pKey) {
+        // section only entries are specified with pItem as NULL
         return bInserted ? SI_INSERTED : SI_UPDATED;
     }
 
@@ -2053,6 +2057,11 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::AddEntry(
         }
         Delete(a_pSection, a_pKey);
         iKey = keyval.end();
+    }
+
+    // values need to be a valid string, even if they are an empty string
+    if (!a_pValue) {
+        a_pValue = &m_cEmptyString;
     }
 
     // make string copies if necessary
