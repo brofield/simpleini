@@ -13,7 +13,7 @@ A cross-platform library that provides a simple API to read and write INI-style 
 - loading and saving of INI-style configuration files
 - configuration files can have any newline format on all platforms
 - liberal acceptance of file format
-  * key/values with no section
+  * key/values with no section, keys with no value
   * removal of whitespace around sections, keys and values
 - support for multi-line values (values with embedded newline characters)
 - optional support for multiple keys with the same name

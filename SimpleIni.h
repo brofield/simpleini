@@ -48,13 +48,18 @@
 
     @section usage USAGE SUMMARY
 
+    -#  Decide if you will be using utf8 or MBCS files, and working with the
+        data in utf8, wchar_t or ICU chars. 
+    -#  If you will only be using straight utf8 files and access the data via the 
+        char interface, then you do not need any conversion library and could define 
+        SI_NO_CONVERSION. Note that no conversion also means no validation of the data.
+        If no converter is specified then the default converter is SI_CONVERT_GENERIC 
+        on Mac/Linux and SI_CONVERT_WIN32 on Windows. If you need widechar support on 
+        Mac/Linux then use either SI_CONVERT_GENERIC or SI_CONVERT_ICU. These are also
+        supported on all platforms.
     -#  Define the appropriate symbol for the converter you wish to use and
-        include the SimpleIni.h header file. If no specific converter is defined
-        then the default converter is used. The default conversion mode uses
-        SI_CONVERT_WIN32 on Windows and SI_CONVERT_GENERIC on all other
-        platforms. If you are using ICU then SI_CONVERT_ICU is supported on all
-        platforms.
-    -#  Declare an instance the appropriate class. Note that the following
+        include the SimpleIni.h header file. 
+    -#  Declare an instance of the appropriate class. Note that the following
         definitions are just shortcuts for commonly used types. Other types
         (PRUnichar, unsigned short, unsigned char) are also possible.
         <table>
