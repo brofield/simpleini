@@ -11,8 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Install requirements
-      run: |
-        sudo apt update && sudo apt install libgtest-dev
+      run: sudo apt install libgtest-dev
     - uses: actions/checkout@v2
     - run: make all && make test
   MacOS:
