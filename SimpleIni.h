@@ -3,7 +3,7 @@
     <table>
         <tr><th>Library     <td>SimpleIni
         <tr><th>File        <td>SimpleIni.h
-        <tr><th>Author      <td>Brodie Thiesfield [brofield at gmail dot com]
+        <tr><th>Author      <td>Brodie Thiesfield
         <tr><th>Source      <td>https://github.com/brofield/simpleini
         <tr><th>Version     <td>4.18
     </table>
@@ -42,6 +42,7 @@
         - Windows/VC6 (warning level 3)
         - Windows/VC.NET 2003 (warning level 4)
         - Windows/VC 2005 (warning level 4)
+        - Windows/VC 2019 (warning level 4)
         - Linux/gcc (-Wall)
 
 
@@ -57,7 +58,10 @@
         definitions are just shortcuts for commonly used types. Other types
         (PRUnichar, unsigned short, unsigned char) are also possible.
         <table>
-            <tr><th>Interface   <th>Case-sensitive  <th>Load UTF-8  <th>Load MBCS   <th>Typedef
+        <tr><th>Interface       <th>Case-sensitive  <th>Load UTF-8  <th>Load MBCS   <th>Typedef
+        <tr><th>SI_NO_CONVERSION
+            <tr><td>char        <td>No              <td>Yes         <td>No          <td>CSimpleIniA
+            <tr><td>char        <td>Yes             <td>Yes         <td>No          <td>CSimpleIniCaseA
         <tr><th>SI_CONVERT_GENERIC
             <tr><td>char        <td>No              <td>Yes         <td>Yes #1      <td>CSimpleIniA
             <tr><td>char        <td>Yes             <td>Yes         <td>Yes         <td>CSimpleIniCaseA
@@ -88,6 +92,8 @@
             <tr><td>GetValue        <td>Return a value for a section & key
             <tr><td>SetValue        <td>Add or update a value for a section & key
             <tr><td>Delete          <td>Remove a section, or a key from a section
+            <tr><td>SectionExists   <td>Does a section exist?
+            <tr><td>KeyExists       <td>Does a key exist?
         </table>
     -# Call Save() or SaveFile() to save the INI configuration data
 
