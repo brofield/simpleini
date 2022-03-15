@@ -881,15 +881,15 @@ public:
 
     /** Test if a section exists. Convenience function */
     inline const bool SectionExists(
-        const SI_CHAR* a_pSection
+        const SI_CHAR * a_pSection
     ) const {
         return GetSection(a_pSection) != NULL;
     }
 
     /** Test if the key exists in a section. Convenience function. */
     inline const bool KeyExists(
-        const SI_CHAR* a_pSection,
-        const SI_CHAR* a_pKey
+        const SI_CHAR * a_pSection,
+        const SI_CHAR * a_pKey
     ) const {
         return GetValue(a_pSection, a_pKey) != NULL;
     }
@@ -2175,7 +2175,7 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetLongValue(
     long nValue = a_nDefault;
     char * pszSuffix = szValue;
     if (szValue[0] == '0' && (szValue[1] == 'x' || szValue[1] == 'X')) {
-    	if (!szValue[2]) return a_nDefault;
+        if (!szValue[2]) return a_nDefault;
         nValue = strtol(&szValue[2], &pszSuffix, 16);
     }
     else {
@@ -2256,32 +2256,32 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::GetDoubleValue(
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error 
 CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::SetDoubleValue(
-	const SI_CHAR * a_pSection,
-	const SI_CHAR * a_pKey,
-	double          a_nValue,
-	const SI_CHAR * a_pComment,
-	bool            a_bForceReplace
-	)
+    const SI_CHAR * a_pSection,
+    const SI_CHAR * a_pKey,
+    double          a_nValue,
+    const SI_CHAR * a_pComment,
+    bool            a_bForceReplace
+    )
 {
-	// use SetValue to create sections
-	if (!a_pSection || !a_pKey) return SI_FAIL;
+    // use SetValue to create sections
+    if (!a_pSection || !a_pKey) return SI_FAIL;
 
-	// convert to an ASCII string
-	char szInput[64];
+    // convert to an ASCII string
+    char szInput[64];
 #if __STDC_WANT_SECURE_LIB__ && !_WIN32_WCE
-	sprintf_s(szInput, "%f", a_nValue);
+    sprintf_s(szInput, "%f", a_nValue);
 #else // !__STDC_WANT_SECURE_LIB__
-	sprintf(szInput, "%f", a_nValue);
+    sprintf(szInput, "%f", a_nValue);
 #endif // __STDC_WANT_SECURE_LIB__
 
-	// convert to output text
-	SI_CHAR szOutput[64];
-	SI_CONVERTER c(m_bStoreIsUtf8);
-	c.ConvertFromStore(szInput, strlen(szInput) + 1, 
-		szOutput, sizeof(szOutput) / sizeof(SI_CHAR));
+    // convert to output text
+    SI_CHAR szOutput[64];
+    SI_CONVERTER c(m_bStoreIsUtf8);
+    c.ConvertFromStore(szInput, strlen(szInput) + 1, 
+        szOutput, sizeof(szOutput) / sizeof(SI_CHAR));
 
-	// actually add it
-	return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, a_bForceReplace, true);
+    // actually add it
+    return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, a_bForceReplace, true);
 }
 
 template<class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
