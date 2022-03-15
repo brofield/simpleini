@@ -29,7 +29,11 @@ TEST_F(TestRoundTrip, TestStandard) {
 		"\n"
 		"; Section 2 comment\n"
 		"[section2]\n"
+		"\n"
+		"; key1 comment\n"
 		"key1 = string\n"
+		"\n"
+		"; key 2 comment\n"
 		"key2 = true\n"
 		"key3 = 3.1415\n"
 		;
