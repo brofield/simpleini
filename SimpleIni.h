@@ -867,12 +867,26 @@ public:
         are in use!
 
         @param a_pSection       Name of the section to return
-        @return boolean         Was a section matching the supplied
-                                name found.
+        @return                 Section data
      */
     const TKeyVal * GetSection(
         const SI_CHAR * a_pSection
         ) const;
+
+    /** Test if a section exists. Convenience function */
+    inline const bool SectionExists(
+        const SI_CHAR* a_pSection
+    ) const {
+        return GetSection(a_pSection) != NULL;
+    }
+
+    /** Test if the key exists in a section. Convenience function. */
+    inline const bool KeyExists(
+        const SI_CHAR* a_pSection,
+        const SI_CHAR* a_pKey
+    ) const {
+        return GetValue(a_pSection, a_pKey) != NULL;
+    }
 
     /** Retrieve the value for a specific key. If multiple keys are enabled
         (see SetMultiKey) then only the first value associated with that key
