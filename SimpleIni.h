@@ -885,14 +885,14 @@ public:
         ) const;
 
     /** Test if a section exists. Convenience function */
-    inline const bool SectionExists(
+    inline bool SectionExists(
         const SI_CHAR * a_pSection
     ) const {
         return GetSection(a_pSection) != NULL;
     }
 
     /** Test if the key exists in a section. Convenience function. */
-    inline const bool KeyExists(
+    inline bool KeyExists(
         const SI_CHAR * a_pSection,
         const SI_CHAR * a_pKey
     ) const {
