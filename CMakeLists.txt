@@ -13,6 +13,21 @@ else()
 	set(IS_TOPLEVEL_PROJECT FALSE)
 endif()
 
+# Disable in-source builds:
+get_filename_component(srcdir "${CMAKE_SOURCE_DIR}" REALPATH)
+get_filename_component(bindir "${CMAKE_BINARY_DIR}" REALPATH)
+
+# disallow in-source builds
+if("${srcdir}" STREQUAL "${bindir}")
+	message("")
+	message("ERROR:: in-source builds are disabled!")
+	message("Run cmake in a separate build directory:")
+	message("$ cmake -S . -B build")
+	message("")
+	message(FATAL_ERROR "Aborting...")
+endif()
+
+# Define library paths and include directories
 set(EXPORT_NAMESPACE "${PROJECT_NAME}::")
 set(HEADERS SimpleIni.h)
 
