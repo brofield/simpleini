@@ -35,3 +35,7 @@ add_library(${EXPORT_NAMESPACE}${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 
 target_include_directories(${PROJECT_NAME} INTERFACE .)
 
+if(IS_TOPLEVEL_PROJECT)
+	enable_testing()
+	add_subdirectory(tests)
+endif()
