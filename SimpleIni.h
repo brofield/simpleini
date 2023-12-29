@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield
         <tr><th>Source      <td>https://github.com/brofield/simpleini
-        <tr><th>Version     <td>4.20
+        <tr><th>Version     <td>4.21
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
@@ -15,7 +15,6 @@
     This component allows an INI-style configuration file to be used on both
     Windows and Linux/Unix. It is fast, simple and source code using this
     component will compile unchanged on either OS.
-
 
     @section features FEATURES
 
@@ -38,13 +37,14 @@
     - support for non-standard character types or file encodings
       via user-written converter classes
     - support for adding/modifying values programmatically
-    - compiles cleanly in the following compilers:
+    - should compile cleanly without warning usually at the strictest warning level
+    - it has been tested with the following compilers:
         - Windows/VC6 (warning level 3)
         - Windows/VC.NET 2003 (warning level 4)
         - Windows/VC 2005 (warning level 4)
         - Windows/VC 2019 (warning level 4)
         - Linux/gcc (-Wall)
-
+        - Mac OS/c++ (-Wall)
 
     @section usage USAGE SUMMARY
 
@@ -86,6 +86,8 @@
         #1  On Windows you are better to use CSimpleIniA with SI_CONVERT_WIN32.<br>
         #2  Only affects Windows. On Windows this uses MBCS functions and
             so may fold case incorrectly leading to uncertain results.
+    -# Set all the options that you require, see all the Set*() options below. 
+        The SetUnicode() option is very common and can be specified in the constructor.
     -# Call LoadData() or LoadFile() to load and parse the INI configuration file
     -# Access and modify the data of the file using the following functions
         <table>
@@ -175,15 +177,18 @@
     - Not thread-safe so manage your own locking
 
     @section contrib CONTRIBUTIONS
+
+    Many thanks to the following contributors:
     
     - 2010/05/03: Tobias Gehrig: added GetDoubleValue()
+    - See list of many contributors in github
 
     @section licence MIT LICENCE
 
     The licence text below is the boilerplate "MIT Licence" used from:
     http://www.opensource.org/licenses/mit-license.php
 
-    Copyright (c) 2006-2012, Brodie Thiesfield
+    Copyright (c) 2006-2024, Brodie Thiesfield
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to deal
