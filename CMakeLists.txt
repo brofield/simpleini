@@ -72,5 +72,7 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 
 if(IS_TOPLEVEL_PROJECT)
 	include(CTest)
-	add_subdirectory(tests)
+	if(BUILD_TESTING)
+		add_subdirectory(tests)
+	endif()
 endif()
