@@ -34,6 +34,7 @@ set(HEADERS SimpleIni.h)
 
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${EXPORT_NAMESPACE}${PROJECT_NAME} ALIAS ${PROJECT_NAME})
+target_compile_definitions(${PROJECT_NAME} INTERFACE SI_NO_CONVERSION)
 
 include(GNUInstallDirs)
 
