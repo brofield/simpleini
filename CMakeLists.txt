@@ -13,6 +13,7 @@ else()
 	set(IS_TOPLEVEL_PROJECT FALSE)
 endif()
 
+option(ENABLE_TESTING "Include tests as part of the build." OFF)
 option(SIMPLEINI_USE_SYSTEM_GTEST "Use system GoogleTest dependency" OFF)
 
 # Disable in-source builds:
@@ -44,7 +45,7 @@ write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Conf
 )
 configure_package_config_file(${PROJECT_NAME}Config.cmake.in
 	${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
-	INSTALL_DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${PROJECT_NAME}
+	INSTALL_DESTINATION lib/cmake/${PROJECT_NAME}
 )
 
 install(FILES SimpleIni.h
@@ -58,10 +59,10 @@ install(TARGETS ${PROJECT_NAME}
 install(FILES
 		${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}Config.cmake
 		${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
-	DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${PROJECT_NAME}
+	DESTINATION lib/cmake/${PROJECT_NAME}
 )
 install(EXPORT ${PROJECT_NAME}Targets
-	DESTINATION ${CMAKE_INSTALL_DATADIR}/cmake/${PROJECT_NAME}
+	DESTINATION lib/cmake/${PROJECT_NAME}
 	NAMESPACE ${EXPORT_NAMESPACE}
 )
 
@@ -71,8 +72,8 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 )
 
 if(IS_TOPLEVEL_PROJECT)
-	include(CTest)
-	if(BUILD_TESTING)
+	if(ENABLE_TESTING)
+		include(CTest)
 		add_subdirectory(tests)
 	endif()
 endif()
