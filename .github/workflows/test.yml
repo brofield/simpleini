@@ -34,12 +34,12 @@ jobs:
       run: |
         cmake . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
         cmake --build build
-        ctest --test-dir build
+        ctest --verbose --test-dir build
     - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
       run: |
         cmake . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
         cmake --build build-system-gtest
-        ctest --test-dir build-system-gtest
+        ctest --verbose --test-dir build-system-gtest
 
   MacOS:
     runs-on: macos-latest
@@ -53,9 +53,9 @@ jobs:
       run: |
         cmake . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
         cmake --build build
-        ctest --test-dir build
+        ctest --verbose --test-dir build
     - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
       run: |
         cmake . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
         cmake --build build-system-gtest
-        ctest --test-dir build-system-gtest
+        ctest --verbose --test-dir build-system-gtest
