@@ -11,17 +11,14 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v3
-    - name: Install requirements
+    - uses: microsoft/setup-msbuild@v2
+    - name: Build
       run: |
-        cd vcproj
-        nuget restore SimpleIni.sln
-
-    - run: msbuild simpleini.sln /p:Configuration=Release
-
-    - name: Run Tests
+        nuget restore vcproj\SimpleIni.sln
+        msbuild vcproj\SimpleIni.sln /p:Configuration=Release
+    - name: Run tests
       run: |
-        cd vcproj\x64\Release
-        .\tests.exe
+        .\vcproj\x64\Release\tests.exe
 
 
   Ubuntu:
