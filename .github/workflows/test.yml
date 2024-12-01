@@ -18,7 +18,8 @@ jobs:
         msbuild vcproj\SimpleIni.sln /p:Configuration=Release
     - name: Run tests
       run: |
-        .\vcproj\x64\Release\tests.exe
+        cd tests
+        ..\vcproj\x64\Release\tests.exe
 
 
   Ubuntu:
