@@ -3063,14 +3063,18 @@ public:
             return a_uInputDataLen;
         }
 
-#if defined(SI_NO_MBSTOWCS_NULL) || (!defined(_MSC_VER) && !defined(_linux))
+        // get the required buffer size
+#if defined(_MSC_VER)
+        size_t uBufSiz;
+        errno_t e = mbstowcs_s(&uBufSiz, NULL, 0, a_pInputData, a_uInputDataLen);
+        return (e == 0) ? uBufSiz : (size_t) -1;
+#elif !defined(SI_NO_MBSTOWCS_NULL)
+        return mbstowcs(NULL, a_pInputData, a_uInputDataLen);
+#else
         // fall back processing for platforms that don't support a NULL dest to mbstowcs
         // worst case scenario is 1:1, this will be a sufficient buffer size
         (void)a_pInputData;
         return a_uInputDataLen;
-#else
-        // get the actual required buffer size
-        return mbstowcs(NULL, a_pInputData, a_uInputDataLen);
 #endif
     }
 
@@ -3119,9 +3123,18 @@ public:
         }
 
         // convert to wchar_t
+#if defined(_MSC_VER)
+        size_t uBufSiz;
+        errno_t e = mbstowcs_s(&uBufSiz,
+            a_pOutputData, a_uOutputDataSize,
+            a_pInputData, a_uInputDataLen);
+		(void)uBufSiz;
+        return (e == 0);
+#else
         size_t retval = mbstowcs(a_pOutputData,
             a_pInputData, a_uOutputDataSize);
         return retval != (size_t)(-1);
+#endif
     }
 
     /** Calculate the number of char required by the storage format of this
