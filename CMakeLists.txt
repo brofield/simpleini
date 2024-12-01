@@ -7,26 +7,13 @@ project(
 	LANGUAGES CXX
 )
 
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
-	set(IS_TOPLEVEL_PROJECT TRUE)
-else()
-	set(IS_TOPLEVEL_PROJECT FALSE)
-endif()
-
 option(SIMPLEINI_USE_SYSTEM_GTEST "Use system GoogleTest dependency" OFF)
 
-# Disable in-source builds:
-get_filename_component(srcdir "${CMAKE_SOURCE_DIR}" REALPATH)
-get_filename_component(bindir "${CMAKE_BINARY_DIR}" REALPATH)
-
-if("${srcdir}" STREQUAL "${bindir}")
-	message("")
-	message("ERROR:: in-source builds are disabled!")
-	message("Run cmake in a separate build directory:")
-	message("$ cmake -S . -B build")
-	message("")
-	message(FATAL_ERROR "Aborting...")
+# disable in-source builds
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
+	message(FATAL_ERROR "In-source builds are not allowed, use cmake -S . -B build.")
 endif()
+
 
 # Define library paths and include directories
 set(EXPORT_NAMESPACE "${PROJECT_NAME}::")
@@ -70,7 +57,8 @@ target_include_directories(${PROJECT_NAME} INTERFACE
 	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 
-if(IS_TOPLEVEL_PROJECT)
+# only build tests when top level and testing enabled
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 	include(CTest)
 	if(BUILD_TESTING)
 		add_subdirectory(tests)
