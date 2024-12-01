@@ -13,8 +13,8 @@ jobs:
     - uses: actions/checkout@v3
     - name: Install requirements
       run: |
-        choco install nuget.commandline -y
-        nuget restore simpleini.sln
+        cd vcproj
+        nuget restore SimpleIni.sln
 
     - run: msbuild simpleini.sln /p:Configuration=Release
 
