@@ -7,6 +7,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Library Files", "Library Fi
 	ProjectSection(SolutionItems) = preProject
 		..\ConvertUTF.c = ..\ConvertUTF.c
 		..\ConvertUTF.h = ..\ConvertUTF.h
+		..\ConvertUTF_readme.txt = ..\ConvertUTF_readme.txt
 		..\SimpleIni.h = ..\SimpleIni.h
 	EndProjectSection
 EndProject
@@ -28,19 +29,13 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{8F30A5DC-B942-4C9A-BA75-91C906FF85FA}.Debug|x64.ActiveCfg = Debug|x64
 		{8F30A5DC-B942-4C9A-BA75-91C906FF85FA}.Debug|x64.Build.0 = Debug|x64
-		{8F30A5DC-B942-4C9A-BA75-91C906FF85FA}.Debug|x86.ActiveCfg = Debug|Win32
-		{8F30A5DC-B942-4C9A-BA75-91C906FF85FA}.Debug|x86.Build.0 = Debug|Win32
 		{8F30A5DC-B942-4C9A-BA75-91C906FF85FA}.Release|x64.ActiveCfg = Release|x64
 		{8F30A5DC-B942-4C9A-BA75-91C906FF85FA}.Release|x64.Build.0 = Release|x64
-		{8F30A5DC-B942-4C9A-BA75-91C906FF85FA}.Release|x86.ActiveCfg = Release|Win32
-		{8F30A5DC-B942-4C9A-BA75-91C906FF85FA}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
