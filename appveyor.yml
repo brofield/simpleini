@@ -1,0 +1,15 @@
+version: 1.0.{build}
+image: Visual Studio 2022
+
+before_build:
+- cmd: >-
+    cd vcproj
+    nuget restore -verbosity detailed
+
+build:
+  verbosity: minimal
+
+test_script:
+- cmd: >-
+    cd "%APPVEYOR_BUILD_FOLDER%\tests"
+    "%APPVEYOR_BUILD_FOLDER%\vcproj\x64\Debug\tests.exe"

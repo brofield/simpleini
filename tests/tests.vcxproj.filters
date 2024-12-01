@@ -30,15 +30,13 @@
     <None Include="example.ini">
       <Filter>Other Files</Filter>
     </None>
-    <None Include="packages.config">
-      <Filter>Other Files</Filter>
-    </None>
     <None Include="tests.ini">
       <Filter>Test Cases</Filter>
     </None>
     <None Include="Makefile">
       <Filter>Other Files</Filter>
     </None>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Test Cases">
