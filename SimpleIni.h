@@ -53,7 +53,7 @@
     -#  If you will only be using straight utf8 files and access the data via the 
         char interface, then you do not need any conversion library and could define 
         SI_NO_CONVERSION. Note that no conversion also means no validation of the data.
-        If no converter is specified then the default converter is SI_CONVERT_GENERIC 
+        If no converter is specified then the default converter is SI_NO_CONVERSION
         on Mac/Linux and SI_CONVERT_WIN32 on Windows. If you need widechar support on 
         Mac/Linux then use either SI_CONVERT_GENERIC or SI_CONVERT_ICU. These are also
         supported on all platforms.
@@ -2834,17 +2834,19 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::DeleteString(
 //
 //  SI_NO_CONVERSION        Do not make the "W" wide character version of the 
 //                          library available. Only CSimpleIniA etc is defined.
+//                          Default on Linux/MacOS/etc.
+//  SI_CONVERT_WIN32        Use the Win32 API functions for conversion.
+//                          Default on Windows.
 //  SI_CONVERT_GENERIC      Use the Unicode reference conversion library in
 //                          the accompanying files ConvertUTF.h/c
 //  SI_CONVERT_ICU          Use the IBM ICU conversion library. Requires
 //                          ICU headers on include path and icuuc.lib
-//  SI_CONVERT_WIN32        Use the Win32 API functions for conversion.
 
 #if !defined(SI_NO_CONVERSION) && !defined(SI_CONVERT_GENERIC) && !defined(SI_CONVERT_WIN32) && !defined(SI_CONVERT_ICU)
 # ifdef _WIN32
 #  define SI_CONVERT_WIN32
 # else
-#  define SI_CONVERT_GENERIC
+#  define SI_NO_CONVERSION
 # endif
 #endif
 

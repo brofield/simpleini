@@ -8,7 +8,7 @@ A cross-platform library that provides a simple API to read and write INI-style 
 # Feature Summary
 
 - MIT Licence allows free use in all software (including GPL and commercial)
-- multi-platform (Windows 95 to Windows 10, Windows CE, Linux, Unix)
+- multi-platform: Windows (from 95 to 11, CE), Linux, MacOS
 - loading and saving of INI-style configuration files
 - configuration files can have any newline format on all platforms
 - liberal acceptance of file format
