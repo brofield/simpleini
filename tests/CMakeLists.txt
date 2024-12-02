@@ -4,9 +4,10 @@ else()
 	include(FetchContent)
 	FetchContent_Declare(
 		googletest
+		DOWNLOAD_EXTRACT_TIMESTAMP ON
 		URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
 		URL_HASH SHA1=0ac421f2ec11af38b0fff0f1992184032731a8bc
-		DOWNLOAD_EXTRACT_TIMESTAMP ON)
+		)
 	FetchContent_MakeAvailable(googletest)
 endif()
 
