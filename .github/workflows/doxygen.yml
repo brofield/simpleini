@@ -1,24 +1,20 @@
-name: Generate Doxygen documentation
+name: Build Doxygen Docs
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Build and Test"]
+    types:
+      - completed
 
 jobs:
-  build:
+  deploy:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
-
     steps:
-    - name: Checkout repository
+    - name: Checkout code
       uses: actions/checkout@v2
-
-    - name: Set up Doxygen
-      run: sudo apt-get install doxygen graphviz
-
-    - name: Generate Doxygen documentation
+    - name: Generate Doxygen Documentation
       run: doxygen Doxyfile
-
     - name: Deploy to GitHub Pages
       uses: peaceiris/actions-gh-pages@v3
       with:

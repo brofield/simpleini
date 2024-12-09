@@ -1,4 +1,4 @@
-name: Test SimpleIni
+name: Build and Test
 
 on:
   push:
