@@ -20,6 +20,13 @@ set(TEST_SOURCES
 	ts-roundtrip.cpp
 	ts-snippets.cpp
 	ts-utf8.cpp
+	ts-numeric.cpp
+	ts-boolean.cpp
+	ts-sections.cpp
+	ts-deletion.cpp
+	ts-edgecases.cpp
+	ts-multiline.cpp
+	ts-casesensitivity.cpp
 )
 
 # ts-wchar.cpp uses wchar_t which is primarily for Windows
@@ -28,6 +35,15 @@ if(WIN32)
 endif()
 
 add_executable(tests ${TEST_SOURCES})
+
+# Enable precompiled headers for faster builds
+target_precompile_headers(tests PRIVATE
+	<string>
+	<map>
+	<list>
+	<algorithm>
+	"../SimpleIni.h"
+)
 
 add_test(NAME tests COMMAND tests)
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
