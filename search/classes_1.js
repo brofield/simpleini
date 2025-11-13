@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['entry_58',['Entry',['../structCSimpleIniTempl_1_1Entry.html',1,'CSimpleIniTempl']]]
+  ['entry_0',['Entry',['../structCSimpleIniTempl_1_1Entry.html',1,'CSimpleIniTempl']]]
 ];

@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['outputwriter_62',['OutputWriter',['../classCSimpleIniTempl_1_1OutputWriter.html',1,'CSimpleIniTempl']]]
+  ['outputwriter_0',['OutputWriter',['../classCSimpleIniTempl_1_1OutputWriter.html',1,'CSimpleIniTempl']]]
 ];

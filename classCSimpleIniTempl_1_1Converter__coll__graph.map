@@ -1,4 +1,5 @@
 <map id="CSimpleIniTempl&lt; SI_CHAR, SI_STRLESS, SI_CONVERTER &gt;::Converter" name="CSimpleIniTempl&lt; SI_CHAR, SI_STRLESS, SI_CONVERTER &gt;::Converter">
-<area shape="rect" id="node1" title=" " alt="" coords="5,80,200,136"/>
-<area shape="rect" id="node2" title=" " alt="" coords="43,5,163,32"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,79,200,133"/>
+<area shape="rect" id="Node000002" title=" " alt="" coords="43,5,163,31"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="105,44,105,79,100,79,100,44"/>
 </map>

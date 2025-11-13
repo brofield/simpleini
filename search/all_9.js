@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['reset_29',['Reset',['../classCSimpleIniTempl.html#a89b34d38be4518e9ed91c634a41b8055',1,'CSimpleIniTempl']]]
+  ['mit_20licence_0',['MIT LICENCE',['../index.html#licence',1,'']]],
+  ['modifying_20data_1',['MODIFYING DATA',['../md_README.html#autotoc_md7',1,'']]],
+  ['multi_20line_20values_2',['MULTI-LINE VALUES',['../index.html#multiline',1,'']]]
 ];

@@ -1,5 +1,4 @@
 var searchData=
 [
-  ['usingquotes_53',['UsingQuotes',['../classCSimpleIniTempl.html#a26c10eb88b4fa9479da262b2968f81d7',1,'CSimpleIniTempl']]],
-  ['usingspaces_54',['UsingSpaces',['../classCSimpleIniTempl.html#a92203e0c21f8d71e5d1621a18ee0be50',1,'CSimpleIniTempl']]]
+  ['reset_0',['Reset',['../classCSimpleIniTempl.html#a89b34d38be4518e9ed91c634a41b8055',1,'CSimpleIniTempl']]]
 ];
