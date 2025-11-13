@@ -42,7 +42,7 @@ TEST_F(TestNumeric, TestGetLongValueHex) {
 		"[numbers]\n"
 		"hex1 = 0xFF\n"
 		"hex2 = 0x10\n"
-		"hex3 = 0xDEADBEEF\n";
+		"hex3 = 0x12345678\n";
 
 	SI_Error rc = ini.LoadData(input);
 	ASSERT_EQ(rc, SI_OK);
@@ -54,7 +54,7 @@ TEST_F(TestNumeric, TestGetLongValueHex) {
 	ASSERT_EQ(result, 0x10);
 
 	result = ini.GetLongValue("numbers", "hex3", 0);
-	ASSERT_EQ(result, 0xDEADBEEF);
+	ASSERT_EQ(result, 0x12345678);
 }
 
 // Test GetLongValue with invalid values (should return default)
