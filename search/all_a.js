@@ -1,4 +1,6 @@
 var searchData=
 [
-  ['notes_0',['NOTES',['../index.html#notes',1,'']]]
+  ['mit_20licence_0',['MIT LICENCE',['../index.html#licence',1,'']]],
+  ['modifying_20data_1',['MODIFYING DATA',['../md_README.html#autotoc_md12',1,'']]],
+  ['multi_20line_20values_2',['MULTI-LINE VALUES',['../index.html#multiline',1,'']]]
 ];

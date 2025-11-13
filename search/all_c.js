@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['reset_0',['Reset',['../classCSimpleIniTempl.html#a89b34d38be4518e9ed91c634a41b8055',1,'CSimpleIniTempl']]]
+  ['order_0',['SAVE ORDER',['../index.html#save',1,'']]],
+  ['outputwriter_1',['OutputWriter',['../classCSimpleIniTempl_1_1OutputWriter.html',1,'CSimpleIniTempl']]]
 ];

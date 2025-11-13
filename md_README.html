@@ -105,9 +105,54 @@ Feature Summary</h1>
 Documentation</h1>
 <p>Full documentation of the interface is available in doxygen format. See <a href="https://brofield.github.io/simpleini/">latest documentation here</a>.</p>
 <h1><a class="anchor" id="autotoc_md2"></a>
+Installation</h1>
+<p>SimpleIni is a header-only library. No building is required to use it in your project.</p>
+<p>Simply include <code><a class="el" href="SimpleIni_8h_source.html">SimpleIni.h</a></code> in your source files:</p>
+<div class="fragment"><div class="line"> ++</div>
+<div class="line"><span class="preprocessor">#include &quot;SimpleIni.h&quot;</span></div>
+</div><!-- fragment --><p>That's it! The library is ready to use.</p>
+<h1><a class="anchor" id="autotoc_md3"></a>
+Building and Testing</h1>
+<p>While the library itself doesn't require building, you can build and run the test suite using CMake.</p>
+<h2><a class="anchor" id="autotoc_md4"></a>
+Building with CMake</h2>
+<div class="fragment"><div class="line"># Configure the project</div>
+<div class="line">cmake -S . -B build</div>
+<div class="line"> </div>
+<div class="line"># Build the tests (optional)</div>
+<div class="line">cmake --build build</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md5"></a>
+Running Tests</h2>
+<p>After building, run the tests with:</p>
+<div class="fragment"><div class="line"># Run all tests</div>
+<div class="line">cd build</div>
+<div class="line">ctest</div>
+<div class="line"> </div>
+<div class="line"># Or run with verbose output</div>
+<div class="line">ctest --verbose</div>
+<div class="line"> </div>
+<div class="line"># Or run tests directly</div>
+<div class="line">cd tests</div>
+<div class="line">./simpleini-tests</div>
+</div><!-- fragment --><h2><a class="anchor" id="autotoc_md6"></a>
+CMake Integration</h2>
+<p>To use SimpleIni in your CMake project:</p>
+<div class="fragment"><div class="line"># Add SimpleIni as a subdirectory</div>
+<div class="line">add_subdirectory(simpleini)</div>
+<div class="line"> </div>
+<div class="line"># Link against your target</div>
+<div class="line">target_link_libraries(your_target PRIVATE SimpleIni::SimpleIni)</div>
+</div><!-- fragment --><p>Or install it system-wide:</p>
+<div class="fragment"><div class="line">cmake -S . -B build</div>
+<div class="line">cmake --build build</div>
+<div class="line">sudo cmake --install build</div>
+</div><!-- fragment --><p>Then in your CMake project:</p>
+<div class="fragment"><div class="line">find_package(SimpleIni REQUIRED)</div>
+<div class="line">target_link_libraries(your_target PRIVATE SimpleIni::SimpleIni)</div>
+</div><!-- fragment --><h1><a class="anchor" id="autotoc_md7"></a>
 Examples</h1>
 <p>These snippets are included with the distribution in the automatic tests as ts-snippets.cpp.</p>
-<h3><a class="anchor" id="autotoc_md3"></a>
+<h3><a class="anchor" id="autotoc_md8"></a>
 SIMPLE USAGE</h3>
 <div class="fragment"><div class="line">++</div>
 <div class="line">   <span class="comment">// simple demonstration</span></div>
@@ -128,7 +173,7 @@ SIMPLE USAGE</h3>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">pv</a> = <a class="code hl_struct" href="structSI__GenericNoCase.html">ini</a>.GetValue(<span class="stringliteral">&quot;section&quot;</span>, <span class="stringliteral">&quot;key&quot;</span>, <span class="stringliteral">&quot;default&quot;</span>);</div>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">ASSERT_STREQ</a>(<a class="code hl_struct" href="structSI__GenericNoCase.html">pv</a>, <span class="stringliteral">&quot;newvalue&quot;</span>);</div>
 <div class="ttc" id="astructSI__GenericNoCase_html"><div class="ttname"><a href="structSI__GenericNoCase.html">SI_GenericNoCase</a></div><div class="ttdef"><b>Definition</b> SimpleIni.h:2879</div></div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md4"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md9"></a>
 LOADING DATA</h3>
 <div class="fragment"><div class="line">++</div>
 <div class="line">   <span class="comment">// load from a data file</span></div>
@@ -143,7 +188,7 @@ LOADING DATA</h3>
 <div class="line">   SI_Error <a class="code hl_struct" href="structSI__GenericNoCase.html">rc</a> = <a class="code hl_struct" href="structSI__GenericNoCase.html">ini</a>.LoadData(<a class="code hl_struct" href="structSI__GenericNoCase.html">example</a>);</div>
 <div class="line">   <span class="keywordflow">if</span> (<a class="code hl_struct" href="structSI__GenericNoCase.html">rc</a> &lt; 0) { <span class="comment">/* handle error */</span> };</div>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">ASSERT_EQ</a>(<a class="code hl_struct" href="structSI__GenericNoCase.html">rc</a>, SI_OK);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md5"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md10"></a>
 GETTING SECTIONS AND KEYS</h3>
 <div class="fragment"><div class="line">++</div>
 <div class="line">   <span class="comment">// get all sections</span></div>
@@ -153,7 +198,7 @@ GETTING SECTIONS AND KEYS</h3>
 <div class="line">   <span class="comment">// get all keys in a section</span></div>
 <div class="line">   CSimpleIniA::TNamesDepend <a class="code hl_struct" href="structSI__GenericNoCase.html">keys</a>;</div>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">ini</a>.GetAllKeys(<span class="stringliteral">&quot;section1&quot;</span>, <a class="code hl_struct" href="structSI__GenericNoCase.html">keys</a>);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md6"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md11"></a>
 GETTING VALUES</h3>
 <div class="fragment"><div class="line">++</div>
 <div class="line">   <span class="comment">// get the value of a key that doesn&#39;t exist</span></div>
@@ -190,7 +235,7 @@ GETTING VALUES</h3>
 <div class="line">   <span class="keywordflow">for</span> (<a class="code hl_struct" href="structSI__GenericNoCase.html">it</a> = <a class="code hl_struct" href="structSI__GenericNoCase.html">values</a>.begin(); <a class="code hl_struct" href="structSI__GenericNoCase.html">it</a> != <a class="code hl_struct" href="structSI__GenericNoCase.html">values</a>.end(); ++<a class="code hl_struct" href="structSI__GenericNoCase.html">it</a>) {</div>
 <div class="line">       <a class="code hl_struct" href="structSI__GenericNoCase.html">printf</a>(<span class="stringliteral">&quot;value = &#39;%s&#39;\n&quot;</span>, <a class="code hl_struct" href="structSI__GenericNoCase.html">it</a>-&gt;pItem);</div>
 <div class="line">   }</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md7"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md12"></a>
 MODIFYING DATA</h3>
 <div class="fragment"><div class="line">++</div>
 <div class="line">   <span class="comment">// add a new section </span></div>
@@ -225,7 +270,7 @@ MODIFYING DATA</h3>
 <div class="line">   <span class="comment">// ensure it is set to expected value</span></div>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">pv</a> = <a class="code hl_struct" href="structSI__GenericNoCase.html">ini</a>.GetValue(<span class="stringliteral">&quot;section2&quot;</span>, <span class="stringliteral">&quot;key1&quot;</span>, <span class="keyword">nullptr</span>);</div>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">ASSERT_STREQ</a>(<a class="code hl_struct" href="structSI__GenericNoCase.html">pv</a>, <span class="stringliteral">&quot;value2&quot;</span>);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md8"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md13"></a>
 DELETING DATA</h3>
 <div class="fragment"><div class="line">++</div>
 <div class="line">   <span class="comment">// deleting a key from a section. Optionally the entire</span></div>
@@ -241,7 +286,7 @@ DELETING DATA</h3>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">ASSERT_EQ</a>(<a class="code hl_struct" href="structSI__GenericNoCase.html">done</a>, <span class="keyword">true</span>);</div>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">done</a> = <a class="code hl_struct" href="structSI__GenericNoCase.html">ini</a>.Delete(<span class="stringliteral">&quot;section2&quot;</span>, <span class="keyword">nullptr</span>);</div>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">ASSERT_EQ</a>(<a class="code hl_struct" href="structSI__GenericNoCase.html">done</a>, <span class="keyword">false</span>);</div>
-</div><!-- fragment --><h3><a class="anchor" id="autotoc_md9"></a>
+</div><!-- fragment --><h3><a class="anchor" id="autotoc_md14"></a>
 SAVING DATA</h3>
 <div class="fragment"><div class="line">++</div>
 <div class="line">   <span class="comment">// save the data to a string</span></div>

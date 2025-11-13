@@ -1,8 +1,11 @@
 var searchData=
 [
-  ['data_0',['data',['../md_README.html#autotoc_md8',1,'DELETING DATA'],['../md_README.html#autotoc_md4',1,'LOADING DATA'],['../md_README.html#autotoc_md7',1,'MODIFYING DATA'],['../md_README.html#autotoc_md9',1,'SAVING DATA']]],
-  ['delete_1',['Delete',['../classCSimpleIniTempl.html#aa5c1cdd0b306434d9e9f1422888049da',1,'CSimpleIniTempl']]],
-  ['deletevalue_2',['DeleteValue',['../classCSimpleIniTempl.html#a04551ae6c3e92475b2a823d2729652d6',1,'CSimpleIniTempl']]],
-  ['deleting_20data_3',['DELETING DATA',['../md_README.html#autotoc_md8',1,'']]],
-  ['documentation_4',['Documentation',['../md_README.html#autotoc_md1',1,'']]]
+  ['cmake_0',['Building with CMake',['../md_README.html#autotoc_md4',1,'']]],
+  ['cmake_20integration_1',['CMake Integration',['../md_README.html#autotoc_md6',1,'']]],
+  ['comments_2',['COMMENTS',['../index.html#comments',1,'']]],
+  ['contributions_3',['CONTRIBUTIONS',['../index.html#contrib',1,'']]],
+  ['converter_4',['Converter',['../classCSimpleIniTempl_1_1Converter.html',1,'CSimpleIniTempl']]],
+  ['convertfromstore_5',['ConvertFromStore',['../classSI__ConvertA.html#a5176a6dc2dc6482280e9a08dd3607f9e',1,'SI_ConvertA']]],
+  ['converttostore_6',['ConvertToStore',['../classSI__ConvertA.html#a188fd6d6fcba6ba8d769e70e5fbea742',1,'SI_ConvertA']]],
+  ['csimpleinitempl_7',['csimpleinitempl',['../classCSimpleIniTempl.html',1,'CSimpleIniTempl&lt; SI_CHAR, SI_STRLESS, SI_CONVERTER &gt;'],['../classCSimpleIniTempl.html#af878d0a2aa780255b621e95f58f691d8',1,'CSimpleIniTempl::CSimpleIniTempl()']]]
 ];
