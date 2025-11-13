@@ -34,6 +34,76 @@ A cross-platform library that provides a simple API to read and write INI-style 
 
 Full documentation of the interface is available in doxygen format. See [latest documentation here](https://brofield.github.io/simpleini/).
 
+# Installation
+
+SimpleIni is a header-only library. No building is required to use it in your project.
+
+Simply include `SimpleIni.h` in your source files:
+
+```c++
+#include "SimpleIni.h"
+```
+
+That's it! The library is ready to use.
+
+# Building and Testing
+
+While the library itself doesn't require building, you can build and run the test suite using CMake.
+
+## Building with CMake
+
+```bash
+# Configure the project
+cmake -S . -B build
+
+# Build the tests (optional)
+cmake --build build
+```
+
+## Running Tests
+
+After building, run the tests with:
+
+```bash
+# Run all tests
+cd build
+ctest
+
+# Or run with verbose output
+ctest --verbose
+
+# Or run tests directly
+cd tests
+./simpleini-tests
+```
+
+## CMake Integration
+
+To use SimpleIni in your CMake project:
+
+```cmake
+# Add SimpleIni as a subdirectory
+add_subdirectory(simpleini)
+
+# Link against your target
+target_link_libraries(your_target PRIVATE SimpleIni::SimpleIni)
+```
+
+Or install it system-wide:
+
+```bash
+cmake -S . -B build
+cmake --build build
+sudo cmake --install build
+```
+
+Then in your CMake project:
+
+```cmake
+find_package(SimpleIni REQUIRED)
+target_link_libraries(your_target PRIVATE SimpleIni::SimpleIni)
+```
+
 # Examples
 
 These snippets are included with the distribution in the automatic tests as ts-snippets.cpp.

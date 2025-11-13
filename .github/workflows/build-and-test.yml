@@ -47,7 +47,10 @@ jobs:
     - name: Install requirements
       run: brew install googletest cmake
     - uses: actions/checkout@v3
-    - run: make all && make test
+    - name: Run make tests
+      run: |
+        export PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig:$(brew --prefix googletest)/lib/pkgconfig:$PKG_CONFIG_PATH"
+        make all && make test
 
     - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
       run: |
