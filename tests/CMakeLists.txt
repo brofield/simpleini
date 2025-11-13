@@ -29,6 +29,9 @@ endif()
 
 add_executable(tests ${TEST_SOURCES})
 
+# GoogleTest v1.14.0+ requires C++17
+target_compile_features(tests PRIVATE cxx_std_17)
+
 add_test(NAME tests COMMAND tests)
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
 
