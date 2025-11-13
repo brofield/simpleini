@@ -80,7 +80,7 @@ install(FILES
 )
 
 # only build tests when top level and testing enabled
-if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND SIMPLEINI_BUILD_TESTS)
 	include(CTest)
 	if(BUILD_TESTING)
 		add_subdirectory(tests)
