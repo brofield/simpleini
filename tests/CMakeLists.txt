@@ -1,7 +1,8 @@
 # GoogleTest v1.14.0+ requires C++17
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+# Set as cache variables to ensure FetchContent-fetched GoogleTest uses them
+set(CMAKE_CXX_STANDARD 17 CACHE STRING "C++ standard" FORCE)
+set(CMAKE_CXX_STANDARD_REQUIRED ON CACHE BOOL "Require C++ standard" FORCE)
+set(CMAKE_CXX_EXTENSIONS OFF CACHE BOOL "Use compiler extensions" FORCE)
 
 if(SIMPLEINI_USE_SYSTEM_GTEST)
 	find_package(GTest REQUIRED)
