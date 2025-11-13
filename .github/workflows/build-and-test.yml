@@ -10,7 +10,10 @@ on:
 
 jobs:
   Windows:
-    runs-on: windows-latest
+    strategy:
+      matrix:
+        runner: [windows-latest, windows-11-arm64]
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -22,7 +25,10 @@ jobs:
           ctest --verbose --test-dir build -C Release
 
   Ubuntu:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        runner: [ubuntu-latest, ubuntu-24.04-arm64]
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -44,7 +50,10 @@ jobs:
           ctest --verbose --test-dir build-system-gtest
 
   MacOS:
-    runs-on: macos-latest
+    strategy:
+      matrix:
+        runner: [macos-13, macos-14]
+    runs-on: ${{ matrix.runner }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
