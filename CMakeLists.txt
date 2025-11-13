@@ -86,6 +86,3 @@ if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 		add_subdirectory(tests)
 	endif()
 endif()
-
-set(SIMPLEINI_VERSION_MAJOR 4)
-set(SIMPLEINI_VERSION_MINOR 24)
