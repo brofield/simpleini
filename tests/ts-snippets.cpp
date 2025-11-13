@@ -1,5 +1,5 @@
-#include "pch.h"
 #include "../SimpleIni.h"
+#include "gtest/gtest.h"
 
 
 // ### SIMPLE USAGE

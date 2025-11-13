@@ -1,5 +1,5 @@
-﻿#include "pch.h"
-#include "../SimpleIni.h"
+﻿#include "../SimpleIni.h"
+#include "gtest/gtest.h"
 
 class TestUTF8 : public ::testing::Test {
 protected:

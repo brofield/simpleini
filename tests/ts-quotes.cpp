@@ -1,6 +1,6 @@
-#include "pch.h"
 #include <algorithm>
 #include "../SimpleIni.h"
+#include "gtest/gtest.h"
 
 class TestQuotes : public ::testing::Test {
 protected:

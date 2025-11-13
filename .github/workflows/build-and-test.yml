@@ -15,18 +15,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v5
 
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      - name: Build
+      - name: Test with CMake
         run: |
-          nuget restore vcproj\SimpleIni.sln
-          msbuild vcproj\SimpleIni.sln /p:Configuration=Release
-
-      - name: Run tests
-        run: |
-          cd tests
-          ..\vcproj\x64\Release\tests.exe
+          cmake -S . -B build
+          cmake --build build --config Release
+          ctest --verbose --test-dir build -C Release
 
   Ubuntu:
     runs-on: ubuntu-latest
@@ -38,19 +31,15 @@ jobs:
         run: |
           sudo apt install libgtest-dev cmake
 
-      - name: Test with Makefile
-        run: |
-          make all && make test
-
       - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
         run: |
-          cmake . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
+          cmake -S . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
           cmake --build build
           ctest --verbose --test-dir build
 
       - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
         run: |
-          cmake . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
+          cmake -S . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
           cmake --build build-system-gtest
           ctest --verbose --test-dir build-system-gtest
 
@@ -63,20 +52,15 @@ jobs:
       - name: Install requirements
         run: brew install googletest cmake
 
-      - name: Test with Makefile
-        run: |
-          export PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig:$(brew --prefix googletest)/lib/pkgconfig:$PKG_CONFIG_PATH"
-          make all && make test
-
       - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
         run: |
-          cmake . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
+          cmake -S . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
           cmake --build build
           ctest --verbose --test-dir build
 
       - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
         run: |
-          cmake . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
+          cmake -S . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
           cmake --build build-system-gtest
           ctest --verbose --test-dir build-system-gtest
 
