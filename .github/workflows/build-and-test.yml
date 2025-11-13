@@ -18,7 +18,7 @@ jobs:
       - name: Test with CMake
         run: |
           cmake -S . -B build
-          cmake --build build --config Release
+          cmake --build build --config Release --target tests
           ctest --verbose --test-dir build -C Release
 
   Ubuntu:
@@ -50,7 +50,9 @@ jobs:
         uses: actions/checkout@v5
 
       - name: Install requirements
-        run: brew install googletest cmake
+        run: |
+          brew list googletest &>/dev/null || brew install googletest
+          brew list cmake &>/dev/null || brew install cmake
 
       - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
         run: |
