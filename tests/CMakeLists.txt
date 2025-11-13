@@ -1,3 +1,8 @@
+# GoogleTest v1.14.0+ requires C++17
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
 if(SIMPLEINI_USE_SYSTEM_GTEST)
 	find_package(GTest REQUIRED)
 else()
@@ -29,8 +34,11 @@ endif()
 
 add_executable(tests ${TEST_SOURCES})
 
-# GoogleTest v1.14.0+ requires C++17
-target_compile_features(tests PRIVATE cxx_std_17)
+set_target_properties(tests PROPERTIES
+	CXX_STANDARD 17
+	CXX_STANDARD_REQUIRED ON
+	CXX_EXTENSIONS OFF
+)
 
 add_test(NAME tests COMMAND tests)
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
