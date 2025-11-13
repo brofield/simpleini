@@ -36,14 +36,17 @@ endif()
 
 add_executable(tests ${TEST_SOURCES})
 
-# Enable precompiled headers for faster builds (C++ only)
-target_precompile_headers(tests PRIVATE
-	"$<$<COMPILE_LANGUAGE:CXX>:<string>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:<map>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:<list>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:<algorithm>>"
-	"$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/../SimpleIni.h>"
-)
+# Enable precompiled headers for faster builds
+# Note: PCH disabled on MSVC due to generator expression issues
+if(NOT MSVC)
+	target_precompile_headers(tests PRIVATE
+		<string>
+		<map>
+		<list>
+		<algorithm>
+		"../SimpleIni.h"
+	)
+endif()
 
 add_test(NAME tests COMMAND tests)
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
