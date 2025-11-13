@@ -9,10 +9,18 @@ GTEST_LIBS := $(shell pkg-config --libs gtest_main 2>/dev/null)
 ifeq ($(GTEST_LIBS),)
     UNAME := $(shell uname -s)
     ifeq ($(UNAME),Darwin)
-        BREW_PREFIX := $(shell brew --prefix 2>/dev/null)
-        ifneq ($(BREW_PREFIX),)
-            GTEST_CFLAGS := -I$(BREW_PREFIX)/include
-            GTEST_LIBS := -L$(BREW_PREFIX)/lib -lgtest_main -lgtest -lpthread
+        # Try formula-specific prefix first (modern Homebrew)
+        BREW_GTEST_PREFIX := $(shell brew --prefix googletest 2>/dev/null)
+        ifneq ($(BREW_GTEST_PREFIX),)
+            GTEST_CFLAGS := -I$(BREW_GTEST_PREFIX)/include
+            GTEST_LIBS := -L$(BREW_GTEST_PREFIX)/lib -lgtest_main -lgtest
+        else
+            # Fall back to general brew prefix
+            BREW_PREFIX := $(shell brew --prefix 2>/dev/null)
+            ifneq ($(BREW_PREFIX),)
+                GTEST_CFLAGS := -I$(BREW_PREFIX)/include
+                GTEST_LIBS := -L$(BREW_PREFIX)/lib -lgtest_main -lgtest
+            endif
         endif
     endif
 endif
