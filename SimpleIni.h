@@ -161,6 +161,9 @@
 
     @section notes NOTES
 
+    - The maximum supported file size is 1 GiB (SI_MAX_FILE_SIZE). Files larger
+      than this will be rejected with SI_FILE error to prevent excessive memory
+      allocation and potential denial of service attacks.
     - To load UTF-8 data on Windows 95, you need to use Microsoft Layer for
       Unicode, or SI_CONVERT_GENERIC, or SI_CONVERT_ICU.
     - When using SI_CONVERT_GENERIC, ConvertUTF.c must be compiled and linked.
@@ -260,6 +263,10 @@ constexpr int SI_INSERTED = 2;  //!< A new value was inserted
 constexpr int SI_FAIL = -1;     //!< Generic failure
 constexpr int SI_NOMEM = -2;    //!< Out of memory error
 constexpr int SI_FILE = -3;     //!< File error (see errno for detail error)
+
+//! Maximum supported file size (1 GiB). Files larger than this will be rejected
+//! to prevent excessive memory allocation and potential denial of service.
+constexpr size_t SI_MAX_FILE_SIZE = 1024ULL * 1024ULL * 1024ULL;
 
 #define SI_UTF8_SIGNATURE     "\xEF\xBB\xBF"
 
@@ -1458,9 +1465,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadFile(
         return SI_OK;
     }
 
-    // check for integer overflow before allocation
-    if (static_cast<size_t>(lSize) > SIZE_MAX - 1) {
-        return SI_NOMEM;
+    // check file size is within supported limits (SI_MAX_FILE_SIZE)
+    if (static_cast<size_t>(lSize) > SI_MAX_FILE_SIZE) {
+        return SI_FILE;
     }
 
     // allocate and ensure NULL terminated
@@ -1516,9 +1523,9 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::LoadData(
         return SI_FAIL;
     }
 
-    // check for integer overflow before allocation
-    if (uLen >= (SIZE_MAX / sizeof(SI_CHAR)) - 1) {
-        return SI_NOMEM;
+    // check converted data size is within supported limits (SI_MAX_FILE_SIZE)
+    if (uLen >= (SI_MAX_FILE_SIZE / sizeof(SI_CHAR))) {
+        return SI_FILE;
     }
 
     // allocate memory for the data, ensure that there is a NULL
