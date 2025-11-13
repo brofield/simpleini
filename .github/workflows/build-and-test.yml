@@ -47,10 +47,7 @@ jobs:
           ctest --verbose --test-dir build-system-gtest
 
   MacOS:
-    strategy:
-      matrix:
-        runner: [macos-13, macos-14]
-    runs-on: ${{ matrix.runner }}
+    runs-on: macos-14
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
