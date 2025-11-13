@@ -227,6 +227,7 @@ SAVE ORDER</h1>
 <h1><a class="anchor" id="notes"></a>
 NOTES</h1>
 <ul>
+<li>The maximum supported file size is 1 GiB (SI_MAX_FILE_SIZE). Files larger than this will be rejected with SI_FILE error to prevent excessive memory allocation and potential denial of service attacks.</li>
 <li>To load UTF-8 data on Windows 95, you need to use Microsoft Layer for Unicode, or SI_CONVERT_GENERIC, or SI_CONVERT_ICU.</li>
 <li>When using SI_CONVERT_GENERIC, ConvertUTF.c must be compiled and linked.</li>
 <li>When using SI_CONVERT_ICU, ICU header files must be on the include path and icuuc.lib must be linked in.</li>
