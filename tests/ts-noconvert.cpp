@@ -1,7 +1,6 @@
-﻿#include "pch.h"
-
-#define SI_NO_CONVERSION
+﻿#define SI_NO_CONVERSION
 #include "../SimpleIni.h"
+#include "gtest/gtest.h"
 
 class TestNoConvert : public ::testing::Test {
 protected:

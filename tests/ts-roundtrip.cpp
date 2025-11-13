@@ -1,6 +1,6 @@
-﻿#include "pch.h"
-#include <algorithm>
+﻿#include <algorithm>
 #include "../SimpleIni.h"
+#include "gtest/gtest.h"
 
 class TestRoundTrip : public ::testing::Test {
 protected:

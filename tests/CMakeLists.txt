@@ -2,6 +2,8 @@ if(SIMPLEINI_USE_SYSTEM_GTEST)
 	find_package(GTest REQUIRED)
 else()
 	include(FetchContent)
+	# Force GoogleTest to use the same runtime library as our tests (MSVC)
+	set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 	FetchContent_Declare(
 		googletest
 		DOWNLOAD_EXTRACT_TIMESTAMP ON
@@ -11,13 +13,21 @@ else()
 	FetchContent_MakeAvailable(googletest)
 endif()
 
-add_executable(tests
+set(TEST_SOURCES
 	ts-bugfix.cpp
 	ts-noconvert.cpp
 	ts-quotes.cpp
 	ts-roundtrip.cpp
 	ts-snippets.cpp
-	ts-utf8.cpp)
+	ts-utf8.cpp
+)
+
+# ts-wchar.cpp uses wchar_t which is primarily for Windows
+if(WIN32)
+	list(APPEND TEST_SOURCES ts-wchar.cpp)
+endif()
+
+add_executable(tests ${TEST_SOURCES})
 
 add_test(NAME tests COMMAND tests)
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
