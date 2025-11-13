@@ -20,6 +20,13 @@ set(TEST_SOURCES
 	ts-roundtrip.cpp
 	ts-snippets.cpp
 	ts-utf8.cpp
+	ts-numeric.cpp
+	ts-boolean.cpp
+	ts-sections.cpp
+	ts-deletion.cpp
+	ts-edgecases.cpp
+	ts-multiline.cpp
+	ts-casesensitivity.cpp
 )
 
 # ts-wchar.cpp uses wchar_t which is primarily for Windows
