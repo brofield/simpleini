@@ -5,7 +5,7 @@
         <tr><th>File        <td>SimpleIni.h
         <tr><th>Author      <td>Brodie Thiesfield
         <tr><th>Source      <td>https://github.com/brofield/simpleini
-        <tr><th>Version     <td>4.22
+        <tr><th>Version     <td>4.23
     </table>
 
     Jump to the @link CSimpleIniTempl CSimpleIni @endlink interface documentation.
