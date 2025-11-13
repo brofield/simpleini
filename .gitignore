@@ -4,6 +4,11 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 docs
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+dist/
+build/
 
 
 # User-specific files

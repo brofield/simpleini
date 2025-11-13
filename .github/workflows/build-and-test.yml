@@ -2,63 +2,100 @@ name: Build and Test
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
+  release:
+    types: [published]
 
 jobs:
   Windows:
     runs-on: windows-latest
     steps:
-    - uses: actions/checkout@v3
-    - uses: microsoft/setup-msbuild@v2
-    - name: Build
-      run: |
-        nuget restore vcproj\SimpleIni.sln
-        msbuild vcproj\SimpleIni.sln /p:Configuration=Release
-    - name: Run tests
-      run: |
-        cd tests
-        ..\vcproj\x64\Release\tests.exe
+      - name: Checkout code
+        uses: actions/checkout@v5
 
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      - name: Build
+        run: |
+          nuget restore vcproj\SimpleIni.sln
+          msbuild vcproj\SimpleIni.sln /p:Configuration=Release
+
+      - name: Run tests
+        run: |
+          cd tests
+          ..\vcproj\x64\Release\tests.exe
 
   Ubuntu:
     runs-on: ubuntu-latest
     steps:
-    - name: Install requirements
-      run: sudo apt install libgtest-dev cmake
-    - uses: actions/checkout@v3
-    - run: make all && make test
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-    - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
-      run: |
-        cmake . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
-        cmake --build build
-        ctest --verbose --test-dir build
-    - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
-      run: |
-        cmake . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
-        cmake --build build-system-gtest
-        ctest --verbose --test-dir build-system-gtest
+      - name: Install requirements
+        run: |
+          sudo apt install libgtest-dev cmake
+
+      - name: Test with Makefile
+        run: |
+          make all && make test
+
+      - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
+        run: |
+          cmake . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
+          cmake --build build
+          ctest --verbose --test-dir build
+
+      - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
+        run: |
+          cmake . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
+          cmake --build build-system-gtest
+          ctest --verbose --test-dir build-system-gtest
 
   MacOS:
     runs-on: macos-latest
     steps:
-    - name: Install requirements
-      run: brew install googletest cmake
-    - uses: actions/checkout@v3
-    - name: Run make tests
-      run: |
-        export PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig:$(brew --prefix googletest)/lib/pkgconfig:$PKG_CONFIG_PATH"
-        make all && make test
+      - name: Checkout code
+        uses: actions/checkout@v5
 
-    - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
-      run: |
-        cmake . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
-        cmake --build build
-        ctest --verbose --test-dir build
-    - name: test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
-      run: |
-        cmake . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
-        cmake --build build-system-gtest
-        ctest --verbose --test-dir build-system-gtest
+      - name: Install requirements
+        run: brew install googletest cmake
+
+      - name: Test with Makefile
+        run: |
+          export PKG_CONFIG_PATH="$(brew --prefix)/lib/pkgconfig:$(brew --prefix googletest)/lib/pkgconfig:$PKG_CONFIG_PATH"
+          make all && make test
+
+      - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
+        run: |
+          cmake . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
+          cmake --build build
+          ctest --verbose --test-dir build
+
+      - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
+        run: |
+          cmake . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
+          cmake --build build-system-gtest
+          ctest --verbose --test-dir build-system-gtest
+
+  Doxygen:
+    needs: [Ubuntu, Windows, MacOS]
+    if: ${{ always() && github.event_name != 'pull_request' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install Doxygen
+        run: sudo apt-get update && sudo apt-get install -y doxygen graphviz
+
+      - name: Generate Documentation
+        run: doxygen Doxyfile
+
+      - name: Deploy Documentation to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs/html
