@@ -11,6 +11,14 @@ else()
 		URL_HASH SHA1=0ac421f2ec11af38b0fff0f1992184032731a8bc
 		)
 	FetchContent_MakeAvailable(googletest)
+
+	# GoogleTest v1.14.0+ requires C++17
+	# Set C++ standard on GoogleTest targets to match our tests
+	set_target_properties(gtest gtest_main PROPERTIES
+		CXX_STANDARD 17
+		CXX_STANDARD_REQUIRED ON
+		CXX_EXTENSIONS OFF
+	)
 endif()
 
 set(TEST_SOURCES
@@ -35,6 +43,12 @@ if(WIN32)
 endif()
 
 add_executable(tests ${TEST_SOURCES})
+
+set_target_properties(tests PROPERTIES
+	CXX_STANDARD 17
+	CXX_STANDARD_REQUIRED ON
+	CXX_EXTENSIONS OFF
+)
 
 add_test(NAME tests COMMAND tests)
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
