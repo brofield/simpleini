@@ -36,13 +36,13 @@ endif()
 
 add_executable(tests ${TEST_SOURCES})
 
-# Enable precompiled headers for faster builds
+# Enable precompiled headers for faster builds (C++ only)
 target_precompile_headers(tests PRIVATE
-	<string>
-	<map>
-	<list>
-	<algorithm>
-	"../SimpleIni.h"
+	"$<$<COMPILE_LANGUAGE:CXX>:<string>>"
+	"$<$<COMPILE_LANGUAGE:CXX>:<map>>"
+	"$<$<COMPILE_LANGUAGE:CXX>:<list>>"
+	"$<$<COMPILE_LANGUAGE:CXX>:<algorithm>>"
+	"$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/../SimpleIni.h>"
 )
 
 add_test(NAME tests COMMAND tests)
