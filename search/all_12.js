@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['with_20cmake_0',['Building with CMake',['../md_README.html#autotoc_md4',1,'']]]
+  ['_7ecsimpleinitempl_0',['~CSimpleIniTempl',['../classCSimpleIniTempl.html#a8c933adc1d46bb663caeb6f9dee5aa12',1,'CSimpleIniTempl']]]
 ];

@@ -10,7 +10,7 @@ var searchData=
   ['getlongvalue_7',['GetLongValue',['../classCSimpleIniTempl.html#a7fa211c1c768497520eab7f2014ae786',1,'CSimpleIniTempl']]],
   ['getsection_8',['GetSection',['../classCSimpleIniTempl.html#a56a6838556328ab8bfaa7ded9edb9c8a',1,'CSimpleIniTempl']]],
   ['getsectionsize_9',['GetSectionSize',['../classCSimpleIniTempl.html#a0a9c089eabb5faf764c4af449f7b1846',1,'CSimpleIniTempl']]],
-  ['getting_20sections_20and_20keys_10',['GETTING SECTIONS AND KEYS',['../md_README.html#autotoc_md10',1,'']]],
-  ['getting_20values_11',['GETTING VALUES',['../md_README.html#autotoc_md11',1,'']]],
+  ['getting_20sections_20and_20keys_10',['GETTING SECTIONS AND KEYS',['../md_README.html#autotoc_md9',1,'']]],
+  ['getting_20values_11',['GETTING VALUES',['../md_README.html#autotoc_md10',1,'']]],
   ['getvalue_12',['GetValue',['../classCSimpleIniTempl.html#a74e3f5d22f50b70b2a20c89ec7e2c737',1,'CSimpleIniTempl']]]
 ];
