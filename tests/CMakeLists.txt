@@ -38,7 +38,6 @@ set(TEST_SOURCES
 	ts-multiline.cpp
 	ts-casesensitivity.cpp
 	ts-generic.cpp
-	${CMAKE_SOURCE_DIR}/ConvertUTF.c
 )
 
 # ts-wchar.cpp uses wchar_t which is primarily for Windows

@@ -3038,8 +3038,8 @@ public:
 #define SI_Case     SI_GenericCase
 #define SI_NoCase   SI_GenericNoCase
 
-#include <wchar.h>
-#include "ConvertUTF.h"
+#include <uchar.h>
+
 
 /**
  * Converts UTF-8 to a wchar_t (or equivalent) using the Unicode reference
@@ -3121,28 +3121,38 @@ public:
         size_t          a_uOutputDataSize)
     {
         if (m_bStoreIsUtf8) {
-            // This uses the Unicode reference implementation to do the
-            // conversion from UTF-8 to wchar_t. The required files are
-            // ConvertUTF.h and ConvertUTF.c which should be included in
-            // the distribution but are publicly available from unicode.org
-            // at http://www.unicode.org/Public/PROGRAMS/CVTUTF/
-            ConversionResult retval;
-            const UTF8 * pUtf8 = (const UTF8 *) a_pInputData;
-            if (sizeof(wchar_t) == sizeof(UTF32)) {
-                UTF32 * pUtf32 = (UTF32 *) a_pOutputData;
-                retval = ConvertUTF8toUTF32(
-                    &pUtf8, pUtf8 + a_uInputDataLen,
-                    &pUtf32, pUtf32 + a_uOutputDataSize,
-                    lenientConversion);
+            /* CAVEAT: mbrtoc32() uses the current locale encoding.
+             * Non-ASCII characters are only decoded correctly when the
+             * caller has set a UTF-8 locale, e.g.:
+             *   setlocale(LC_CTYPE, "en_US.UTF-8")  or  setlocale(LC_ALL, "") */
+            const char * src    = a_pInputData;
+            const char * srcEnd = a_pInputData + a_uInputDataLen;
+            SI_CHAR *    dst    = a_pOutputData;
+            SI_CHAR *    dstEnd = a_pOutputData + a_uOutputDataSize;
+            mbstate_t    state;
+            memset(&state, 0, sizeof(state));
+            while (src < srcEnd) {
+                if (dst >= dstEnd) return false;
+                char32_t cp;
+                size_t n = mbrtoc32(&cp, src, (size_t)(srcEnd - src), &state);
+                if (n == (size_t)-1 || n == (size_t)-2) return false;
+                if (n == (size_t)-3) { /* cp already set, no bytes consumed */ }
+                else if (n == 0)     { cp = 0; src++; }
+                else                 { src += n; }
+                if (sizeof(SI_CHAR) >= sizeof(char32_t)) {
+                    *dst++ = (SI_CHAR)cp;
+                } else {
+                    if (cp < 0x10000) {
+                        *dst++ = (SI_CHAR)cp;
+                    } else {
+                        if (dst + 1 >= dstEnd) return false;
+                        cp -= 0x10000;
+                        *dst++ = (SI_CHAR)(0xD800 + (cp >> 10));
+                        *dst++ = (SI_CHAR)(0xDC00 + (cp & 0x3FF));
+                    }
+                }
             }
-            else if (sizeof(wchar_t) == sizeof(UTF16)) {
-                UTF16 * pUtf16 = (UTF16 *) a_pOutputData;
-                retval = ConvertUTF8toUTF16(
-                    &pUtf8, pUtf8 + a_uInputDataLen,
-                    &pUtf16, pUtf16 + a_uOutputDataSize,
-                    lenientConversion);
-            }
-            return retval == conversionOK;
+            return true;
         }
 
         // convert to wchar_t
@@ -3210,35 +3220,35 @@ public:
         )
     {
         if (m_bStoreIsUtf8) {
-            // calc input string length (SI_CHAR type and size independent)
-            size_t uInputLen = 0;
-            while (a_pInputData[uInputLen]) {
-                ++uInputLen;
+            /* CAVEAT: c32rtomb() uses the current locale encoding.
+             * Non-ASCII characters are only encoded correctly when the
+             * caller has set a UTF-8 locale, e.g.:
+             *   setlocale(LC_CTYPE, "en_US.UTF-8")  or  setlocale(LC_ALL, "") */
+            const SI_CHAR * src    = a_pInputData;
+            char *          dst    = a_pOutputData;
+            char *          dstEnd = a_pOutputData + a_uOutputDataSize;
+            mbstate_t       state;
+            memset(&state, 0, sizeof(state));
+            while (*src) {
+                char32_t cp;
+                if (sizeof(SI_CHAR) >= sizeof(char32_t)) {
+                    cp = (char32_t)(*src++);
+                } else {
+                    char16_t w = (char16_t)(*src++);
+                    if (w >= 0xD800 && w <= 0xDBFF && *src >= 0xDC00 && *src <= 0xDFFF)
+                        cp = 0x10000 + ((char32_t)(w - 0xD800) << 10) + ((char16_t)(*src++) - 0xDC00);
+                    else
+                        cp = (char32_t)w;
+                }
+                char buf[4]; /* 4 bytes max for any UTF-8 code point */
+                size_t n = c32rtomb(buf, cp, &state);
+                if (n == (size_t)-1 || (size_t)(dstEnd - dst) < n) return false;
+                memcpy(dst, buf, n);
+                dst += n;
             }
-            ++uInputLen; // include the NULL char
-
-            // This uses the Unicode reference implementation to do the
-            // conversion from wchar_t to UTF-8. The required files are
-            // ConvertUTF.h and ConvertUTF.c which should be included in
-            // the distribution but are publicly available from unicode.org
-            // at http://www.unicode.org/Public/PROGRAMS/CVTUTF/
-            ConversionResult retval;
-            UTF8 * pUtf8 = (UTF8 *) a_pOutputData;
-            if (sizeof(wchar_t) == sizeof(UTF32)) {
-                const UTF32 * pUtf32 = (const UTF32 *) a_pInputData;
-                retval = ConvertUTF32toUTF8(
-                    &pUtf32, pUtf32 + uInputLen,
-                    &pUtf8, pUtf8 + a_uOutputDataSize,
-                    lenientConversion);
-            }
-            else if (sizeof(wchar_t) == sizeof(UTF16)) {
-                const UTF16 * pUtf16 = (const UTF16 *) a_pInputData;
-                retval = ConvertUTF16toUTF8(
-                    &pUtf16, pUtf16 + uInputLen,
-                    &pUtf8, pUtf8 + a_uOutputDataSize,
-                    lenientConversion);
-            }
-            return retval == conversionOK;
+            if (dst >= dstEnd) return false;
+            *dst = '\0';
+            return true;
         }
         else {
             size_t retval = wcstombs(a_pOutputData,
