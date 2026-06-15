@@ -38,7 +38,7 @@ set(TEST_SOURCES
 	ts-multiline.cpp
 	ts-casesensitivity.cpp
 	ts-generic.cpp
-	${CMAKE_SOURCE_DIR}/ConvertUTF.c
+	ts-utf8-conversion.cpp
 )
 
 # ts-wchar.cpp uses wchar_t which is primarily for Windows
@@ -54,11 +54,14 @@ set_target_properties(tests PROPERTIES
 	CXX_EXTENSIONS OFF
 )
 
-add_test(NAME tests COMMAND tests)
+add_test(NAME tests COMMAND tests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
 
 add_custom_command(
 	TARGET tests POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_directory
+		${CMAKE_CURRENT_SOURCE_DIR}/data
+		${CMAKE_CURRENT_BINARY_DIR}/data
 	COMMAND ${CMAKE_COMMAND} -E copy
 		${CMAKE_CURRENT_SOURCE_DIR}/example.ini
 		${CMAKE_CURRENT_SOURCE_DIR}/tests.ini

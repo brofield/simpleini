@@ -166,7 +166,8 @@
       allocation and potential denial of service attacks.
     - To load UTF-8 data on Windows 95, you need to use Microsoft Layer for
       Unicode, or SI_CONVERT_GENERIC, or SI_CONVERT_ICU.
-    - When using SI_CONVERT_GENERIC, ConvertUTF.c must be compiled and linked.
+    - SI_CONVERT_GENERIC provides locale-independent UTF-8 conversion inline;
+      no additional source files are required.
     - When using SI_CONVERT_ICU, ICU header files must be on the include
       path and icuuc.lib must be linked in.
     - To load a UTF-8 file on Windows AND expose it with SI_CHAR == char,
@@ -2858,8 +2859,8 @@ CSimpleIniTempl<SI_CHAR,SI_STRLESS,SI_CONVERTER>::DeleteString(
 //                          Default on Linux/MacOS/etc.
 //  SI_CONVERT_WIN32        Use the Win32 API functions for conversion.
 //                          Default on Windows.
-//  SI_CONVERT_GENERIC      Use the Unicode reference conversion library in
-//                          the accompanying files ConvertUTF.h/c
+//  SI_CONVERT_GENERIC      Use built-in locale-independent UTF-8 conversion
+//                          (no additional source files required)
 //  SI_CONVERT_ICU          Use the IBM ICU conversion library. Requires
 //                          ICU headers on include path and icuuc.lib
 
@@ -3039,11 +3040,156 @@ public:
 #define SI_NoCase   SI_GenericNoCase
 
 #include <wchar.h>
-#include "ConvertUTF.h"
+
+namespace SI_UTF8 {
+
+constexpr char32_t REPLACEMENT = 0xFFFD;
+
+/** Decode one UTF-8 code point. Returns false on illegal or truncated input. */
+inline bool Decode(const char *& a_src, const char * a_end, char32_t & a_cp)
+{
+    if (a_src >= a_end) {
+        return false;
+    }
+    const unsigned char c0 = (unsigned char) *a_src++;
+    if (c0 < 0x80) {
+        a_cp = c0;
+        return true;
+    }
+    if (c0 < 0xC2) {
+        return false;
+    }
+
+    int extra = 0;
+    char32_t ch = 0;
+    if (c0 < 0xE0) {
+        extra = 1;
+        ch = c0 & 0x1F;
+    }
+    else if (c0 < 0xF0) {
+        extra = 2;
+        ch = c0 & 0x0F;
+    }
+    else if (c0 < 0xF5) {
+        extra = 3;
+        ch = c0 & 0x07;
+    }
+    else {
+        return false;
+    }
+    if (a_src + extra > a_end) {
+        a_src -= 1;
+        return false;
+    }
+
+    for (int i = 0; i < extra; ++i) {
+        const unsigned char cx = (unsigned char) *a_src++;
+        if ((cx & 0xC0) != 0x80) {
+            a_src -= (i + 2);
+            return false;
+        }
+        ch = (ch << 6) | (cx & 0x3F);
+    }
+
+    if ((extra == 1 && ch < 0x80)
+            || (extra == 2 && ch < 0x800)
+            || (extra == 3 && ch < 0x10000)
+            || ch > 0x10FFFF
+            || (ch >= 0xD800 && ch <= 0xDFFF)) {
+        a_src -= (extra + 1);
+        return false;
+    }
+
+    a_cp = ch;
+    return true;
+}
+
+/** Encode one code point as UTF-8. Returns bytes written, or -1 on error.
+ *  Surrogate code points (U+D800..U+DFFF) and values above U+10FFFF are
+ *  encoded as U+FFFD so output is always well-formed UTF-8. */
+inline int Encode(char32_t a_cp, char * a_dst, size_t a_cap)
+{
+    if (a_cp >= 0x110000
+            || (a_cp >= 0xD800 && a_cp <= 0xDFFF)) {
+        a_cp = REPLACEMENT;
+    }
+
+    if (a_cp < 0x80) {
+        if (a_cap < 1) return -1;
+        a_dst[0] = (char) a_cp;
+        return 1;
+    }
+    if (a_cp < 0x800) {
+        if (a_cap < 2) return -1;
+        a_dst[0] = (char) (0xC0 | (a_cp >> 6));
+        a_dst[1] = (char) (0x80 | (a_cp & 0x3F));
+        return 2;
+    }
+    if (a_cp < 0x10000) {
+        if (a_cap < 3) return -1;
+        a_dst[0] = (char) (0xE0 | (a_cp >> 12));
+        a_dst[1] = (char) (0x80 | ((a_cp >> 6) & 0x3F));
+        a_dst[2] = (char) (0x80 | (a_cp & 0x3F));
+        return 3;
+    }
+    if (a_cap < 4) return -1;
+    a_dst[0] = (char) (0xF0 | (a_cp >> 18));
+    a_dst[1] = (char) (0x80 | ((a_cp >> 12) & 0x3F));
+    a_dst[2] = (char) (0x80 | ((a_cp >> 6) & 0x3F));
+    a_dst[3] = (char) (0x80 | (a_cp & 0x3F));
+    return 4;
+}
+
+template<class SI_CHAR>
+inline bool AppendCodePoint(char32_t a_cp, SI_CHAR *& a_dst, SI_CHAR * a_dstEnd)
+{
+    if (sizeof(SI_CHAR) >= sizeof(char32_t)) {
+        if (a_dst >= a_dstEnd) return false;
+        *a_dst++ = (SI_CHAR) a_cp;
+        return true;
+    }
+    if (sizeof(SI_CHAR) == 2) {
+        if (a_cp < 0x10000) {
+            if (a_dst >= a_dstEnd) return false;
+            *a_dst++ = (SI_CHAR) a_cp;
+            return true;
+        }
+        if (a_dst + 1 >= a_dstEnd) return false;
+        a_cp -= 0x10000;
+        *a_dst++ = (SI_CHAR) (0xD800 + (a_cp >> 10));
+        *a_dst++ = (SI_CHAR) (0xDC00 + (a_cp & 0x3FF));
+        return true;
+    }
+    return false;
+}
+
+template<class SI_CHAR>
+inline bool ReadCodePoint(const SI_CHAR *& a_src, char32_t & a_cp)
+{
+    if (sizeof(SI_CHAR) >= sizeof(char32_t)) {
+        a_cp = (char32_t) *a_src++;
+        return true;
+    }
+    if (sizeof(SI_CHAR) == 2) {
+        const char32_t w = (char32_t) *a_src++;
+        if (w >= 0xD800 && w <= 0xDBFF) {
+            if (*a_src >= 0xDC00 && *a_src <= 0xDFFF) {
+                a_cp = 0x10000 + ((w - 0xD800) << 10)
+                    + ((char32_t) *a_src++ - 0xDC00);
+                return true;
+            }
+        }
+        a_cp = w;
+        return true;
+    }
+    return false;
+}
+
+} // namespace SI_UTF8
 
 /**
- * Converts UTF-8 to a wchar_t (or equivalent) using the Unicode reference
- * library functions. This can be used on all platforms.
+ * Converts UTF-8 to a wchar_t (or equivalent) using built-in UTF-8 conversion.
+ * This can be used on all platforms without locale configuration.
  */
 template<class SI_CHAR>
 class SI_ConvertW {
@@ -3121,28 +3267,23 @@ public:
         size_t          a_uOutputDataSize)
     {
         if (m_bStoreIsUtf8) {
-            // This uses the Unicode reference implementation to do the
-            // conversion from UTF-8 to wchar_t. The required files are
-            // ConvertUTF.h and ConvertUTF.c which should be included in
-            // the distribution but are publicly available from unicode.org
-            // at http://www.unicode.org/Public/PROGRAMS/CVTUTF/
-            ConversionResult retval;
-            const UTF8 * pUtf8 = (const UTF8 *) a_pInputData;
-            if (sizeof(wchar_t) == sizeof(UTF32)) {
-                UTF32 * pUtf32 = (UTF32 *) a_pOutputData;
-                retval = ConvertUTF8toUTF32(
-                    &pUtf8, pUtf8 + a_uInputDataLen,
-                    &pUtf32, pUtf32 + a_uOutputDataSize,
-                    lenientConversion);
+            const char * src    = a_pInputData;
+            const char * srcEnd = a_pInputData + a_uInputDataLen;
+            SI_CHAR *    dst    = a_pOutputData;
+            SI_CHAR *    dstEnd = a_pOutputData + a_uOutputDataSize;
+            if (sizeof(SI_CHAR) != 2 && sizeof(SI_CHAR) < sizeof(char32_t)) {
+                return false;
             }
-            else if (sizeof(wchar_t) == sizeof(UTF16)) {
-                UTF16 * pUtf16 = (UTF16 *) a_pOutputData;
-                retval = ConvertUTF8toUTF16(
-                    &pUtf8, pUtf8 + a_uInputDataLen,
-                    &pUtf16, pUtf16 + a_uOutputDataSize,
-                    lenientConversion);
+            while (src < srcEnd) {
+                char32_t cp;
+                if (!SI_UTF8::Decode(src, srcEnd, cp)) {
+                    return false;
+                }
+                if (!SI_UTF8::AppendCodePoint(cp, dst, dstEnd)) {
+                    return false;
+                }
             }
-            return retval == conversionOK;
+            return true;
         }
 
         // convert to wchar_t
@@ -3210,35 +3351,30 @@ public:
         )
     {
         if (m_bStoreIsUtf8) {
-            // calc input string length (SI_CHAR type and size independent)
-            size_t uInputLen = 0;
-            while (a_pInputData[uInputLen]) {
-                ++uInputLen;
+            const SI_CHAR * src    = a_pInputData;
+            char *          dst    = a_pOutputData;
+            char *          dstEnd = a_pOutputData + a_uOutputDataSize;
+            if (sizeof(SI_CHAR) != 2 && sizeof(SI_CHAR) < sizeof(char32_t)) {
+                return false;
             }
-            ++uInputLen; // include the NULL char
-
-            // This uses the Unicode reference implementation to do the
-            // conversion from wchar_t to UTF-8. The required files are
-            // ConvertUTF.h and ConvertUTF.c which should be included in
-            // the distribution but are publicly available from unicode.org
-            // at http://www.unicode.org/Public/PROGRAMS/CVTUTF/
-            ConversionResult retval;
-            UTF8 * pUtf8 = (UTF8 *) a_pOutputData;
-            if (sizeof(wchar_t) == sizeof(UTF32)) {
-                const UTF32 * pUtf32 = (const UTF32 *) a_pInputData;
-                retval = ConvertUTF32toUTF8(
-                    &pUtf32, pUtf32 + uInputLen,
-                    &pUtf8, pUtf8 + a_uOutputDataSize,
-                    lenientConversion);
+            while (*src) {
+                char32_t cp;
+                if (!SI_UTF8::ReadCodePoint(src, cp)) {
+                    return false;
+                }
+                char buf[4];
+                const int n = SI_UTF8::Encode(cp, buf, sizeof(buf));
+                if (n < 0 || (size_t) (dstEnd - dst) < (size_t) n) {
+                    return false;
+                }
+                memcpy(dst, buf, (size_t) n);
+                dst += n;
             }
-            else if (sizeof(wchar_t) == sizeof(UTF16)) {
-                const UTF16 * pUtf16 = (const UTF16 *) a_pInputData;
-                retval = ConvertUTF16toUTF8(
-                    &pUtf16, pUtf16 + uInputLen,
-                    &pUtf8, pUtf8 + a_uOutputDataSize,
-                    lenientConversion);
+            if (dst >= dstEnd) {
+                return false;
             }
-            return retval == conversionOK;
+            *dst = '\0';
+            return true;
         }
         else {
             size_t retval = wcstombs(a_pOutputData,

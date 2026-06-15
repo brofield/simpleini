@@ -92,9 +92,15 @@ find_package(SimpleIni REQUIRED)
 target_link_libraries(your_target PRIVATE SimpleIni::SimpleIni)
 ```
 
-Note that the ConvertUTF.\* files are required ONLY if you use SI_CONVERT_GENERIC.
-This is not the default. If you do use this mode, you will need to manually copy
-or include the files from the SimpleIni source directory.
+Note that `SI_CONVERT_GENERIC` is not the default conversion mode. When enabled,
+UTF-8 conversion is built into the header; no additional source files are required.
+
+### Migration from ConvertUTF
+
+Earlier releases shipped `ConvertUTF.c` and `ConvertUTF.h` for `SI_CONVERT_GENERIC`
+and expected you to compile them into your project. UTF-8 conversion is now inline
+in `SimpleIni.h`. Remove any `ConvertUTF.c` / `ConvertUTF.h` from your build and
+drop links to `ConvertUTF.c`; no replacement source files are required.
 
 # Examples
 
