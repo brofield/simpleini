@@ -7,6 +7,8 @@ project(
 	LANGUAGES CXX C
 )
 
+include(GNUInstallDirs)
+
 option(SIMPLEINI_USE_SYSTEM_GTEST "Use system GoogleTest dependency" OFF)
 
 # disable in-source builds
@@ -16,11 +18,8 @@ endif()
 
 set(EXPORT_NAMESPACE "${PROJECT_NAME}::")
 
-include(GNUInstallDirs)
-
-# SimpleIni is a header-only library. The ConvertUTF.c/h files in this repository
-# are only required if users define SI_CONVERT_GENERIC. In that case, users must
-# manually copy and compile ConvertUTF.c into their own projects.
+# SimpleIni is a header-only library. SI_CONVERT_GENERIC uses built-in
+# locale-independent UTF-8 conversion; no additional source files are required.
 add_library(${PROJECT_NAME} INTERFACE)
 add_library(${EXPORT_NAMESPACE}${PROJECT_NAME} ALIAS ${PROJECT_NAME})
 target_include_directories(${PROJECT_NAME} INTERFACE
