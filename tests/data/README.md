@@ -3,12 +3,13 @@
 ## Differential tests (primary)
 
 `tests/ts-utf8-conversion.cpp` compares `SI_UTF8::Encode` /
-`Decode` against the platform C library (`c32rtomb` / `mbrtoc32` from
-`<uchar.h>`) for every assigned Unicode scalar value U+0000..U+10FFFF
-(excluding surrogate code points U+D800..U+DFFF).
+`Decode` against a platform reference implementation for every assigned Unicode
+scalar value U+0000..U+10FFFF (excluding surrogate code points U+D800..U+DFFF).
 
-The test requires a UTF-8 locale (`C.UTF-8`, `en_US.UTF-8`, or system
-default). It is skipped when `<uchar.h>` or a suitable locale is unavailable.
+On Linux and Windows the reference is `c32rtomb` / `mbrtoc32` from `<uchar.h>`
+(with a UTF-8 locale). On macOS the reference is `iconv` (`UTF-32LE` ↔ `UTF-8`),
+because Apple Clang does not expose the C23 `<uchar.h>` conversion functions in
+C++ translation units.
 
 For each code point the test checks:
 

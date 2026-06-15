@@ -12,9 +12,12 @@
 #include <string>
 #include <vector>
 
-#if defined(__has_include)
+#if defined(__APPLE__)
+# define SI_TEST_UTF8_REF_ICONV 1
+# include <iconv.h>
+#elif defined(__has_include)
 # if __has_include(<uchar.h>)
-#  define SI_TEST_HAS_UCHAR 1
+#  define SI_TEST_UTF8_REF_UCHAR 1
 #  include <uchar.h>
 # endif
 #endif
@@ -47,14 +50,16 @@ void RequireTestData(const char * a_name)
     }
 }
 
-bool InitSystemUtf8Locale()
+bool InitSystemUtf8Reference()
 {
-#if !defined(SI_TEST_HAS_UCHAR)
-    return false;
-#else
+#if defined(SI_TEST_UTF8_REF_ICONV)
+    return true;
+#elif defined(SI_TEST_UTF8_REF_UCHAR)
     return setlocale(LC_CTYPE, "C.UTF-8")
         || setlocale(LC_CTYPE, "en_US.UTF-8")
         || setlocale(LC_CTYPE, "");
+#else
+    return false;
 #endif
 }
 
@@ -63,7 +68,64 @@ bool IsAssignedScalar(char32_t cp)
     return cp <= 0x10FFFF && !(cp >= 0xD800 && cp <= 0xDFFF);
 }
 
-#if defined(SI_TEST_HAS_UCHAR)
+#if defined(SI_TEST_UTF8_REF_ICONV)
+
+bool SystemEncode(char32_t cp, char * buf, size_t cap, size_t & outLen)
+{
+    iconv_t cd = iconv_open("UTF-8", "UTF-32LE");
+    if (cd == (iconv_t) -1) {
+        return false;
+    }
+
+    unsigned char in[4] = {
+        (unsigned char) (cp & 0xFF),
+        (unsigned char) ((cp >> 8) & 0xFF),
+        (unsigned char) ((cp >> 16) & 0xFF),
+        (unsigned char) ((cp >> 24) & 0xFF),
+    };
+    char * inbuf = (char *) in;
+    size_t inleft = sizeof(in);
+    char * outbuf = buf;
+    size_t outleft = cap;
+
+    if (iconv(cd, &inbuf, &inleft, &outbuf, &outleft) == (size_t) -1) {
+        iconv_close(cd);
+        return false;
+    }
+
+    iconv_close(cd);
+    outLen = cap - outleft;
+    return true;
+}
+
+bool SystemDecode(const char * buf, size_t len, char32_t & cp, size_t & consumed)
+{
+    iconv_t cd = iconv_open("UTF-32LE", "UTF-8");
+    if (cd == (iconv_t) -1) {
+        return false;
+    }
+
+    unsigned char out[4] = {};
+    char * inbuf = (char *) buf;
+    size_t inleft = len;
+    char * outbuf = (char *) out;
+    size_t outleft = sizeof(out);
+
+    if (iconv(cd, &inbuf, &inleft, &outbuf, &outleft) == (size_t) -1) {
+        iconv_close(cd);
+        return false;
+    }
+
+    iconv_close(cd);
+    consumed = len - inleft;
+    cp = (char32_t) out[0]
+        | ((char32_t) out[1] << 8)
+        | ((char32_t) out[2] << 16)
+        | ((char32_t) out[3] << 24);
+    return true;
+}
+
+#elif defined(SI_TEST_UTF8_REF_UCHAR)
 
 bool SystemEncode(char32_t cp, char * buf, size_t cap, size_t & outLen)
 {
@@ -98,7 +160,7 @@ bool SystemDecode(const char * buf, size_t len, char32_t & cp, size_t & consumed
     return true;
 }
 
-#endif // SI_TEST_HAS_UCHAR
+#endif
 
 std::vector<std::string> LoadHexLines(const char * a_path)
 {
@@ -171,7 +233,7 @@ const std::vector<std::string> & RejectCorpus()
 class SystemUtf8Environment : public ::testing::Environment {
 public:
     void SetUp() override {
-        g_systemUtf8Ready = InitSystemUtf8Locale();
+        g_systemUtf8Ready = InitSystemUtf8Reference();
     }
 };
 
@@ -206,11 +268,11 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST(Utf8Conversion, EncodeAndDecodeMatchSystemLibraryForAllAssignedScalars)
 {
-#if !defined(SI_TEST_HAS_UCHAR)
-    GTEST_SKIP() << "<uchar.h> not available";
+#if !defined(SI_TEST_UTF8_REF_ICONV) && !defined(SI_TEST_UTF8_REF_UCHAR)
+    GTEST_SKIP() << "No system UTF-8 reference implementation available";
 #endif
     if (!g_systemUtf8Ready) {
-        GTEST_SKIP() << "UTF-8 locale unavailable for system library comparison";
+        GTEST_SKIP() << "System UTF-8 reference unavailable";
     }
 
     for (char32_t cp = 0; cp <= 0x10FFFF; ++cp) {

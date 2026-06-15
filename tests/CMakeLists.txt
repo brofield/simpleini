@@ -56,6 +56,9 @@ set_target_properties(tests PROPERTIES
 
 add_test(NAME tests COMMAND tests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
+if(APPLE)
+	target_link_libraries(tests PRIVATE iconv)
+endif()
 
 add_custom_command(
 	TARGET tests POST_BUILD
