@@ -34,6 +34,12 @@ jobs:
         run: |
           sudo apt install libgtest-dev cmake
 
+      - name: Format check
+        if: matrix.runner == 'ubuntu-latest'
+        run: |
+          sudo apt install clang-format
+          make format-check
+
       - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
         run: |
           cmake -S . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
