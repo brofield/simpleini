@@ -1168,6 +1168,10 @@ private:
   /** Make a copy of the supplied string, replacing the original pointer */
   SI_Error CopyString(const SI_CHAR *&a_pString);
 
+  /** Undo m_data changes from a failed incremental LoadData. */
+  void UndoIncrementalLoadData(const TNamesDepend &a_oAddedSections,
+                               const TNamesDepend &a_oAddedKeys);
+
   /** Delete a string from the copied strings buffer if necessary */
   void DeleteString(const SI_CHAR *a_pString);
 
@@ -1512,20 +1516,62 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::LoadData(
   // already have stored some.
   bool bCopyStrings = (m_pData != NULL);
 
+  size_t nStringsBefore = 0;
+  const SI_CHAR *pFileCommentBefore = NULL;
+  TNamesDepend oAddedSections;
+  TNamesDepend oAddedKeys;
+  if (bCopyStrings) {
+    nStringsBefore = m_strings.size();
+    pFileCommentBefore = m_pFileComment;
+  }
+
   // find a file comment if it exists, this is a comment that starts at the
   // beginning of the file and continues until the first blank line.
   SI_Error rc = FindFileComment(pWork, bCopyStrings);
   if (rc < 0) {
     delete[] pData;
+    if (bCopyStrings) {
+      m_pFileComment = pFileCommentBefore;
+      while (m_strings.size() > nStringsBefore) {
+        delete[] const_cast<SI_CHAR *>(m_strings.back().pItem);
+        m_strings.pop_back();
+      }
+    } else {
+      m_pFileComment = NULL;
+    }
     return rc;
   }
 
   // add every entry in the file to the data table
   while (FindEntry(pWork, pSection, pItem, pVal, pComment)) {
+    bool bSectionExisted = SectionExists(pSection);
+    bool bKeyExisted = pItem && bSectionExisted && KeyExists(pSection, pItem);
+
     rc = AddEntry(pSection, pItem, pVal, pComment, false, bCopyStrings);
     if (rc < 0) {
+      if (bCopyStrings) {
+        m_pFileComment = pFileCommentBefore;
+        UndoIncrementalLoadData(oAddedSections, oAddedKeys);
+        while (m_strings.size() > nStringsBefore) {
+          delete[] const_cast<SI_CHAR *>(m_strings.back().pItem);
+          m_strings.pop_back();
+        }
+      } else {
+        m_data.clear();
+        m_pFileComment = NULL;
+        m_nOrder = 0;
+      }
       delete[] pData;
       return rc;
+    }
+
+    if (bCopyStrings) {
+      if (!bSectionExisted && *pSection) {
+        oAddedSections.push_back(Entry(pSection, NULL, 0));
+      }
+      if (pItem && !bKeyExisted) {
+        oAddedKeys.push_back(Entry(pItem, pSection, 0));
+      }
     }
   }
 
@@ -1962,6 +2008,9 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::CopyString(
     for (; a_pString[uLen]; ++uLen) /*loop*/
       ;
   }
+  if (uLen >= (SI_MAX_FILE_SIZE / sizeof(SI_CHAR))) {
+    return SI_NOMEM;
+  }
   ++uLen; // NULL character
   SI_CHAR *pCopy = new (std::nothrow) SI_CHAR[uLen];
   if (!pCopy) {
@@ -1971,6 +2020,22 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::CopyString(
   m_strings.push_back(pCopy);
   a_pString = pCopy;
   return SI_OK;
+}
+
+template <class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
+void CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::
+    UndoIncrementalLoadData(const TNamesDepend &a_oAddedSections,
+                            const TNamesDepend &a_oAddedKeys) {
+  typename TNamesDepend::const_iterator iAddedKey = a_oAddedKeys.begin();
+  for (; iAddedKey != a_oAddedKeys.end(); ++iAddedKey) {
+    Delete(iAddedKey->pComment, iAddedKey->pItem, false);
+  }
+
+  typename TNamesDepend::const_iterator iAddedSection =
+      a_oAddedSections.begin();
+  for (; iAddedSection != a_oAddedSections.end(); ++iAddedSection) {
+    Delete(iAddedSection->pItem, NULL, false);
+  }
 }
 
 template <class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
@@ -2078,6 +2143,8 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::AddEntry(
     typename TKeyVal::value_type oEntry(oKey,
                                         static_cast<const SI_CHAR *>(NULL));
     iKey = keyval.insert(oEntry);
+  } else {
+    DeleteString(iKey->second);
   }
 
   iKey->second = a_pValue;
@@ -2623,13 +2690,11 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::OutputMultiLineText(
       ;
     cEndOfLineChar = *pEndOfLine;
 
-    // temporarily null terminate, convert and output the line
-    *const_cast<SI_CHAR *>(pEndOfLine) = 0;
-    if (!a_oConverter.ConvertToStore(a_pText)) {
-      *const_cast<SI_CHAR *>(pEndOfLine) = cEndOfLineChar;
+    const std::basic_string<SI_CHAR> line(
+        a_pText, static_cast<size_t>(pEndOfLine - a_pText));
+    if (!a_oConverter.ConvertToStore(line.c_str())) {
       return false;
     }
-    *const_cast<SI_CHAR *>(pEndOfLine) = cEndOfLineChar;
     a_pText += (pEndOfLine - a_pText) + 1;
     a_oOutput.Write(a_oConverter.Data());
     a_oOutput.Write(SI_NEWLINE_A);
