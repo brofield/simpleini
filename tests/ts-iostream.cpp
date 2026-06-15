@@ -33,7 +33,9 @@ protected:
     if (m_remaining == 0) {
       return 0;
     }
-    const size_t nChunk = std::min(m_remaining, static_cast<size_t>(a_nCount));
+    const size_t nLimit = static_cast<size_t>(a_nCount);
+    const size_t nChunk =
+        m_remaining < nLimit ? m_remaining : nLimit;
     std::memset(a_pDest, 'a', nChunk);
     m_remaining -= nChunk;
     return static_cast<std::streamsize>(nChunk);
@@ -59,7 +61,12 @@ TEST(IostreamLoad, RejectsStreamLargerThanMaxFileSize) {
 }
 
 TEST(LoadFileRegression, LoadsFromFilePointer) {
-  FILE *fp = tmpfile();
+  FILE *fp = NULL;
+#if defined(_MSC_VER) && __STDC_WANT_SECURE_LIB__
+  ASSERT_EQ(tmpfile_s(&fp), 0);
+#else
+  fp = tmpfile();
+#endif
   ASSERT_NE(fp, nullptr);
 
   const char data[] = "[section]\nkey = value\n";
