@@ -3108,7 +3108,7 @@ public:
 #if defined(_MSC_VER)
       size_t converted = 0;
       errno_t e = wcstombs_s(&converted, a_pOutputData, a_uOutputDataSize,
-                               a_pInputData, 0);
+                             a_pInputData, 0);
       return (e == 0);
 #else
       size_t retval = wcstombs(a_pOutputData, a_pInputData, a_uOutputDataSize);
