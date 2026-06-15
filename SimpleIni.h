@@ -3047,11 +3047,20 @@ public:
       }
       return (6 * uLen) + 1;
     } else {
+#if defined(_MSC_VER)
+      size_t uLen = 0;
+      errno_t e = wcstombs_s(&uLen, NULL, 0, a_pInputData, 0);
+      if (e != 0) {
+        return (size_t)-1;
+      }
+      return uLen + 1; // include NULL terminator
+#else
       size_t uLen = wcstombs(NULL, a_pInputData, 0);
       if (uLen == (size_t)(-1)) {
         return uLen;
       }
       return uLen + 1; // include NULL terminator
+#endif
     }
   }
 
@@ -3096,8 +3105,15 @@ public:
       *dst = '\0';
       return true;
     } else {
+#if defined(_MSC_VER)
+      size_t converted = 0;
+      errno_t e = wcstombs_s(&converted, a_pOutputData, a_uOutputDataSize,
+                               a_pInputData, 0);
+      return (e == 0);
+#else
       size_t retval = wcstombs(a_pOutputData, a_pInputData, a_uOutputDataSize);
       return retval != (size_t)-1;
+#endif
     }
   }
 };
