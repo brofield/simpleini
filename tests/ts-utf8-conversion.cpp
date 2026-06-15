@@ -345,6 +345,13 @@ class Utf8IniRoundtripTest : public ::testing::Test {};
 TEST_F(Utf8IniRoundtripTest, LoadSave_PreservesUnicodeValues) {
     RequireTestData("utf8-ini-roundtrip.ini");
 
+    // Use \x escapes so expected values are correct on MSVC without /utf-8.
+    constexpr wchar_t kGreek[] = L"\x03BA\x1F79\x03C3\x03BC\x03B5";
+    constexpr wchar_t kJapanese[] = L"\x30C6\x30B9\x30C8\x4E8C";
+    constexpr wchar_t kTest2[] = L"\x30C6\x30B9\x30C8\x0032";
+    constexpr wchar_t kInspectionSection[] = L"\x691C\x67FB";
+    constexpr wchar_t kMixed[] = L"Hello \x4E16\x754C";
+
     CSimpleIniW ini;
     ini.SetUnicode();
 
@@ -352,15 +359,19 @@ TEST_F(Utf8IniRoundtripTest, LoadSave_PreservesUnicodeValues) {
 
     const wchar_t * greek = ini.GetValue(L"unicode", L"greek");
     ASSERT_NE(greek, nullptr);
-    EXPECT_STREQ(greek, L"κόσμε");
+    EXPECT_STREQ(greek, kGreek);
 
     const wchar_t * japanese = ini.GetValue(L"unicode", L"japanese");
     ASSERT_NE(japanese, nullptr);
-    EXPECT_STREQ(japanese, L"テスト二");
+    EXPECT_STREQ(japanese, kJapanese);
 
-    const wchar_t * fromSection = ini.GetValue(L"検査", L"test2");
+    const wchar_t * mixed = ini.GetValue(L"unicode", L"mixed");
+    ASSERT_NE(mixed, nullptr);
+    EXPECT_STREQ(mixed, kMixed);
+
+    const wchar_t * fromSection = ini.GetValue(kInspectionSection, L"test2");
     ASSERT_NE(fromSection, nullptr);
-    EXPECT_STREQ(fromSection, L"テスト2");
+    EXPECT_STREQ(fromSection, kTest2);
 
     std::string saved;
     ASSERT_EQ(ini.Save(saved), SI_OK);
@@ -369,7 +380,8 @@ TEST_F(Utf8IniRoundtripTest, LoadSave_PreservesUnicodeValues) {
     reloaded.SetUnicode();
     ASSERT_EQ(reloaded.LoadData(saved), SI_OK);
 
-    EXPECT_STREQ(reloaded.GetValue(L"unicode", L"greek"), L"κόσμε");
-    EXPECT_STREQ(reloaded.GetValue(L"unicode", L"mixed"), L"Hello 世界 🌍");
-    EXPECT_STREQ(reloaded.GetValue(L"検査", L"test2"), L"テスト2");
+    EXPECT_STREQ(reloaded.GetValue(L"unicode", L"greek"), kGreek);
+    EXPECT_STREQ(reloaded.GetValue(L"unicode", L"japanese"), kJapanese);
+    EXPECT_STREQ(reloaded.GetValue(L"unicode", L"mixed"), kMixed);
+    EXPECT_STREQ(reloaded.GetValue(kInspectionSection, L"test2"), kTest2);
 }

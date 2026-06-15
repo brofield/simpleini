@@ -53,6 +53,9 @@ set_target_properties(tests PROPERTIES
 	CXX_STANDARD_REQUIRED ON
 	CXX_EXTENSIONS OFF
 )
+if(MSVC)
+	target_compile_options(tests PRIVATE /utf-8)
+endif()
 
 add_test(NAME tests COMMAND tests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
