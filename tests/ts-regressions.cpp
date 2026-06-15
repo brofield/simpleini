@@ -45,6 +45,16 @@ void *operator new[](std::size_t size, const std::nothrow_t &) noexcept {
   return __wrap_malloc(size);
 }
 
+static size_t CurrentHeapBytes() {
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  const size_t bytes = static_cast<size_t>(mallinfo().uordblks);
+#pragma GCC diagnostic pop
+  return bytes;
+}
+
+#endif // __linux__ && __GLIBC__
+
 // Passthrough converter local to this TU so LoadData is not merged with
 // instantiations compiled under other SI_* defines in the test binary.
 struct RegressionConvertA {
@@ -77,16 +87,6 @@ struct RegressionConvertA {
 
 using RegressionIni =
     CSimpleIniTempl<char, SI_NoCase<char>, RegressionConvertA>;
-
-static size_t CurrentHeapBytes() {
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-  const size_t bytes = static_cast<size_t>(mallinfo().uordblks);
-#pragma GCC diagnostic pop
-  return bytes;
-}
-
-#endif // __linux__ && __GLIBC__
 
 // ---------------------------------------------------------------------------
 // Failing converter for Set*Value regression tests (issue 5)
