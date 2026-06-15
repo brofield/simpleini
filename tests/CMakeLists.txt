@@ -39,6 +39,8 @@ set(TEST_SOURCES
 	ts-casesensitivity.cpp
 	ts-generic.cpp
 	ts-utf8-conversion.cpp
+	ts-regressions.cpp
+	ts-iostream.cpp
 )
 
 # ts-wchar.cpp uses wchar_t which is primarily for Windows
@@ -63,6 +65,10 @@ add_test(NAME tests COMMAND tests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
 if(APPLE)
 	target_link_libraries(tests PRIVATE iconv)
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	target_link_options(tests PRIVATE "-Wl,--wrap=malloc")
 endif()
 
 add_custom_command(

@@ -110,7 +110,11 @@
     by defining SI_SUPPORT_IOSTREAMS before including the SimpleIni.h header
     file. Ensure that if the streams are backed by a file (e.g. ifstream or
     ofstream) then the flag ios_base::binary has been used when the file was
-    opened.
+    opened so that byte values are not altered by the stream layer.
+
+    LoadData(std::istream&) reads text INI data only. Streams containing a NUL
+    (zero) byte are rejected with SI_FAIL. Streams larger than SI_MAX_FILE_SIZE
+    are rejected with SI_FILE.
 
     @section multiline MULTI-LINE VALUES
 
@@ -129,6 +133,8 @@
       before ENDTAG in the end tag is not included in the data value.
     - The ending tag must be on it's own line with no whitespace before
       or after it.
+    - If the closing ENDTAG is not found, the value includes all lines from
+      the opening tag through the end of the file (lenient parsing).
     - The multi-line value is modified at load so that each line in the value
       is delimited by a single '\\n' character on all platforms. At save time
       it will be converted into the newline format used by the current
@@ -179,6 +185,8 @@
     - Usage of the <mbstring.h> header on Windows can be disabled by defining
       SI_NO_MBCS. This is defined automatically on Windows CE platforms.
     - Not thread-safe so manage your own locking
+    - On non-Windows platforms with SI_CONVERT_ICU, wide-character LoadFile()
+      and SaveFile() convert paths to UTF-8 dynamically (no fixed path-length limit).
 
     @section contrib CONTRIBUTIONS
 
@@ -236,6 +244,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <cstring>
+#include <limits>
 #include <list>
 #include <map>
 #include <stdio.h>
@@ -616,6 +625,10 @@ public:
 
 #ifdef SI_SUPPORT_IOSTREAMS
   /** Load INI file data from an istream.
+
+        Reads text INI data from the stream until end-of-file. Streams
+        containing a NUL (zero) byte are rejected with SI_FAIL. Streams
+        larger than SI_MAX_FILE_SIZE are rejected with SI_FILE.
 
         @param a_istream    Stream to read from
 
@@ -1252,6 +1265,7 @@ void CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::Reset() {
   m_pData = NULL;
   m_uDataLen = 0;
   m_pFileComment = NULL;
+  m_nOrder = 0;
   if (!m_data.empty()) {
     m_data.erase(m_data.begin(), m_data.end());
   }
@@ -1265,6 +1279,102 @@ void CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::Reset() {
     m_strings.erase(m_strings.begin(), m_strings.end());
   }
 }
+
+namespace SI_Internal {
+#ifdef SI_CONVERT_ICU
+/** Convert a UChar file path to a newly allocated UTF-8 string for fopen. */
+inline SI_Error UCharPathToUtf8(const UChar *a_pPath, char *&a_pUtf8Path) {
+  a_pUtf8Path = NULL;
+  UErrorCode status = U_ZERO_ERROR;
+  int32_t uLen = 0;
+  u_strToUTF8(NULL, 0, &uLen, a_pPath, -1, &status);
+  if (U_FAILURE(status) && status != U_BUFFER_OVERFLOW_ERROR) {
+    return SI_FILE;
+  }
+  if (uLen < 0) {
+    return SI_FILE;
+  }
+  char *pBuf = new (std::nothrow) char[static_cast<size_t>(uLen) + 1];
+  if (!pBuf) {
+    return SI_NOMEM;
+  }
+  status = U_ZERO_ERROR;
+  u_strToUTF8(pBuf, uLen + 1, NULL, a_pPath, -1, &status);
+  if (U_FAILURE(status)) {
+    delete[] pBuf;
+    return SI_FILE;
+  }
+  a_pUtf8Path = pBuf;
+  return SI_OK;
+}
+#endif // SI_CONVERT_ICU
+
+/** Query the size of an open FILE and leave it positioned at offset 0. */
+inline bool GetFileSize(FILE *a_fpFile, size_t &a_uSize) {
+  a_uSize = 0;
+
+#if defined(_WIN32) && !defined(_WIN32_WCE)
+  if (_fseeki64(a_fpFile, 0, SEEK_END) != 0) {
+    return false;
+  }
+  const __int64 nSize = _ftelli64(a_fpFile);
+  if (nSize < 0) {
+    return false;
+  }
+  if (static_cast<unsigned long long>(nSize) >
+      static_cast<unsigned long long>(SI_MAX_FILE_SIZE)) {
+    return false;
+  }
+  if (static_cast<unsigned long long>(nSize) >
+      static_cast<unsigned long long>(std::numeric_limits<size_t>::max())) {
+    return false;
+  }
+  a_uSize = static_cast<size_t>(nSize);
+  if (_fseeki64(a_fpFile, 0, SEEK_SET) != 0) {
+    return false;
+  }
+  return true;
+#elif defined(_POSIX_VERSION) || defined(__unix__) || defined(__APPLE__)
+  if (fseeko(a_fpFile, 0, SEEK_END) != 0) {
+    return false;
+  }
+  const off_t nSize = ftello(a_fpFile);
+  if (nSize < 0) {
+    return false;
+  }
+  if (static_cast<unsigned long long>(nSize) >
+      static_cast<unsigned long long>(SI_MAX_FILE_SIZE)) {
+    return false;
+  }
+  if (static_cast<unsigned long long>(nSize) >
+      static_cast<unsigned long long>(std::numeric_limits<size_t>::max())) {
+    return false;
+  }
+  a_uSize = static_cast<size_t>(nSize);
+  if (fseeko(a_fpFile, 0, SEEK_SET) != 0) {
+    return false;
+  }
+  return true;
+#else
+  if (fseek(a_fpFile, 0, SEEK_END) != 0) {
+    return false;
+  }
+  const long nSize = ftell(a_fpFile);
+  if (nSize < 0) {
+    return false;
+  }
+  if (static_cast<unsigned long long>(nSize) >
+      static_cast<unsigned long long>(SI_MAX_FILE_SIZE)) {
+    return false;
+  }
+  a_uSize = static_cast<size_t>(nSize);
+  if (fseek(a_fpFile, 0, SEEK_SET) != 0) {
+    return false;
+  }
+  return true;
+#endif
+}
+} // namespace SI_Internal
 
 template <class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::LoadFile(
@@ -1300,9 +1410,14 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::LoadFile(
   fclose(fp);
   return rc;
 #else  // !_WIN32 (therefore SI_CONVERT_ICU)
-  char szFile[256];
-  u_austrncpy(szFile, a_pwszFile, sizeof(szFile));
-  return LoadFile(szFile);
+  char *szFile = NULL;
+  SI_Error rcPath = SI_Internal::UCharPathToUtf8(a_pwszFile, szFile);
+  if (rcPath < 0) {
+    return rcPath;
+  }
+  SI_Error rc = LoadFile(szFile);
+  delete[] szFile;
+  return rc;
 #endif // _WIN32
 }
 #endif // SI_HAS_WIDE_FILE
@@ -1310,35 +1425,24 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::LoadFile(
 template <class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error
 CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::LoadFile(FILE *a_fpFile) {
-  // load the raw file data
-  int retval = fseek(a_fpFile, 0, SEEK_END);
-  if (retval != 0) {
+  size_t uSize = 0;
+  if (!SI_Internal::GetFileSize(a_fpFile, uSize)) {
     return SI_FILE;
   }
-  long lSize = ftell(a_fpFile);
-  if (lSize < 0) {
-    return SI_FILE;
-  }
-  if (lSize == 0) {
+  if (uSize == 0) {
     return SI_OK;
   }
 
-  // check file size is within supported limits (SI_MAX_FILE_SIZE)
-  if (static_cast<size_t>(lSize) > SI_MAX_FILE_SIZE) {
-    return SI_FILE;
-  }
-
   // allocate and ensure NULL terminated
-  char *pData = new (std::nothrow) char[static_cast<size_t>(lSize) + 1];
+  char *pData = new (std::nothrow) char[uSize + 1];
   if (!pData) {
     return SI_NOMEM;
   }
-  pData[lSize] = 0;
+  pData[uSize] = 0;
 
   // load data into buffer
-  fseek(a_fpFile, 0, SEEK_SET);
-  size_t uRead = fread(pData, sizeof(char), lSize, a_fpFile);
-  if (uRead != (size_t)lSize) {
+  size_t uRead = fread(pData, sizeof(char), uSize, a_fpFile);
+  if (uRead != uSize) {
     delete[] pData;
     return SI_FILE;
   }
@@ -1411,14 +1515,18 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::LoadData(
   // find a file comment if it exists, this is a comment that starts at the
   // beginning of the file and continues until the first blank line.
   SI_Error rc = FindFileComment(pWork, bCopyStrings);
-  if (rc < 0)
+  if (rc < 0) {
+    delete[] pData;
     return rc;
+  }
 
   // add every entry in the file to the data table
   while (FindEntry(pWork, pSection, pItem, pVal, pComment)) {
     rc = AddEntry(pSection, pItem, pVal, pComment, false, bCopyStrings);
-    if (rc < 0)
+    if (rc < 0) {
+      delete[] pData;
       return rc;
+    }
   }
 
   // store these strings if we didn't copy them
@@ -1437,12 +1545,20 @@ template <class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::LoadData(
     std::istream &a_istream) {
   std::string strData;
-  char szBuf[512];
-  do {
-    a_istream.get(szBuf, sizeof(szBuf), '\0');
-    strData.append(szBuf);
-  } while (a_istream.good());
-  return LoadData(strData);
+  char buf[4096];
+  while (a_istream.read(buf, sizeof(buf)) || a_istream.gcount() > 0) {
+    const std::streamsize nRead = a_istream.gcount();
+    for (std::streamsize i = 0; i < nRead; ++i) {
+      if (buf[i] == '\0') {
+        return SI_FAIL;
+      }
+    }
+    if (strData.size() + static_cast<size_t>(nRead) > SI_MAX_FILE_SIZE) {
+      return SI_FILE;
+    }
+    strData.append(buf, static_cast<size_t>(nRead));
+  }
+  return LoadData(strData.data(), strData.size());
 }
 #endif // SI_SUPPORT_IOSTREAMS
 
@@ -2054,8 +2170,10 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::SetLongValue(
   // convert to output text
   SI_CHAR szOutput[64];
   SI_CONVERTER c(m_bStoreIsUtf8);
-  c.ConvertFromStore(szInput, strlen(szInput) + 1, szOutput,
-                     sizeof(szOutput) / sizeof(SI_CHAR));
+  if (!c.ConvertFromStore(szInput, strlen(szInput) + 1, szOutput,
+                          sizeof(szOutput) / sizeof(SI_CHAR))) {
+    return SI_FAIL;
+  }
 
   // actually add it
   return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, a_bForceReplace,
@@ -2109,8 +2227,10 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::SetDoubleValue(
   // convert to output text
   SI_CHAR szOutput[64];
   SI_CONVERTER c(m_bStoreIsUtf8);
-  c.ConvertFromStore(szInput, strlen(szInput) + 1, szOutput,
-                     sizeof(szOutput) / sizeof(SI_CHAR));
+  if (!c.ConvertFromStore(szInput, strlen(szInput) + 1, szOutput,
+                          sizeof(szOutput) / sizeof(SI_CHAR))) {
+    return SI_FAIL;
+  }
 
   // actually add it
   return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, a_bForceReplace,
@@ -2169,8 +2289,10 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::SetBoolValue(
   // convert to output text
   SI_CHAR szOutput[64];
   SI_CONVERTER c(m_bStoreIsUtf8);
-  c.ConvertFromStore(pszInput, strlen(pszInput) + 1, szOutput,
-                     sizeof(szOutput) / sizeof(SI_CHAR));
+  if (!c.ConvertFromStore(pszInput, strlen(pszInput) + 1, szOutput,
+                          sizeof(szOutput) / sizeof(SI_CHAR))) {
+    return SI_FAIL;
+  }
 
   // actually add it
   return AddEntry(a_pSection, a_pKey, szOutput, a_pComment, a_bForceReplace,
@@ -2326,9 +2448,14 @@ SI_Error CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::SaveFile(
   fclose(fp);
   return rc;
 #else  // !_WIN32 (therefore SI_CONVERT_ICU)
-  char szFile[256];
-  u_austrncpy(szFile, a_pwszFile, sizeof(szFile));
-  return SaveFile(szFile, a_bAddSignature);
+  char *szFile = NULL;
+  SI_Error rcPath = SI_Internal::UCharPathToUtf8(a_pwszFile, szFile);
+  if (rcPath < 0) {
+    return rcPath;
+  }
+  SI_Error rc = SaveFile(szFile, a_bAddSignature);
+  delete[] szFile;
+  return rc;
 #endif // _WIN32
 }
 #endif // SI_HAS_WIDE_FILE
@@ -2499,6 +2626,7 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::OutputMultiLineText(
     // temporarily null terminate, convert and output the line
     *const_cast<SI_CHAR *>(pEndOfLine) = 0;
     if (!a_oConverter.ConvertToStore(a_pText)) {
+      *const_cast<SI_CHAR *>(pEndOfLine) = cEndOfLineChar;
       return false;
     }
     *const_cast<SI_CHAR *>(pEndOfLine) = cEndOfLineChar;
@@ -2546,6 +2674,7 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::DeleteValue(
       if (a_pValue == NULL || (isLess(a_pValue, iDelete->second) == false &&
                                isLess(iDelete->second, a_pValue) == false)) {
         DeleteString(iDelete->first.pItem);
+        DeleteString(iDelete->first.pComment);
         DeleteString(iDelete->second);
         iSection->second.erase(iDelete);
         bDeleted = true;
@@ -2569,12 +2698,14 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::DeleteValue(
     typename TKeyVal::iterator iKeyVal = iSection->second.begin();
     for (; iKeyVal != iSection->second.end(); ++iKeyVal) {
       DeleteString(iKeyVal->first.pItem);
+      DeleteString(iKeyVal->first.pComment);
       DeleteString(iKeyVal->second);
     }
   }
 
   // delete the section itself
   DeleteString(iSection->first.pItem);
+  DeleteString(iSection->first.pComment);
   m_data.erase(iSection);
 
   return true;
@@ -2583,6 +2714,9 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::DeleteValue(
 template <class SI_CHAR, class SI_STRLESS, class SI_CONVERTER>
 void CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::DeleteString(
     const SI_CHAR *a_pString) {
+  if (!a_pString) {
+    return;
+  }
   // strings may exist either inside the data block, or they will be
   // individually allocated and stored in m_strings. We only physically
   // delete those stored in m_strings.
