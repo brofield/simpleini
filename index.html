@@ -229,7 +229,7 @@ NOTES</h1>
 <ul>
 <li>The maximum supported file size is 1 GiB (SI_MAX_FILE_SIZE). Files larger than this will be rejected with SI_FILE error to prevent excessive memory allocation and potential denial of service attacks.</li>
 <li>To load UTF-8 data on Windows 95, you need to use Microsoft Layer for Unicode, or SI_CONVERT_GENERIC, or SI_CONVERT_ICU.</li>
-<li>When using SI_CONVERT_GENERIC, ConvertUTF.c must be compiled and linked.</li>
+<li>SI_CONVERT_GENERIC provides locale-independent UTF-8 conversion inline; no additional source files are required.</li>
 <li>When using SI_CONVERT_ICU, ICU header files must be on the include path and icuuc.lib must be linked in.</li>
 <li>To load a UTF-8 file on Windows AND expose it with SI_CHAR == char, you should use SI_CONVERT_GENERIC.</li>
 <li>The collation (sorting) order used for sections and keys returned from iterators is NOT DEFINED. If collation order of the text is important then it should be done yourself by either supplying a replacement SI_STRLESS class, or by sorting the strings external to this library.</li>
