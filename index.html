@@ -199,7 +199,8 @@ USAGE SUMMARY</h1>
 </ol>
 <h1><a class="anchor" id="iostreams"></a>
 IO STREAMS</h1>
-<p>SimpleIni supports reading from and writing to STL IO streams. Enable this by defining SI_SUPPORT_IOSTREAMS before including the <a class="el" href="SimpleIni_8h_source.html">SimpleIni.h</a> header file. Ensure that if the streams are backed by a file (e.g. ifstream or ofstream) then the flag ios_base::binary has been used when the file was opened.</p>
+<p>SimpleIni supports reading from and writing to STL IO streams. Enable this by defining SI_SUPPORT_IOSTREAMS before including the <a class="el" href="SimpleIni_8h_source.html">SimpleIni.h</a> header file. Ensure that if the streams are backed by a file (e.g. ifstream or ofstream) then the flag ios_base::binary has been used when the file was opened so that byte values are not altered by the stream layer.</p>
+<p>LoadData(std::istream&amp;) reads text INI data only. Streams containing a NUL (zero) byte are rejected with SI_FAIL. Streams larger than SI_MAX_FILE_SIZE are rejected with SI_FILE.</p>
 <h1><a class="anchor" id="multiline"></a>
 MULTI-LINE VALUES</h1>
 <p>Values that span multiple lines are created using the following format. </p><pre class="fragment">&lt;pre&gt;
@@ -211,6 +212,7 @@ ENDTAG
 <li>The text used for ENDTAG can be anything and is used to find where the multi-line text ends.</li>
 <li>The newline after ENDTAG in the start tag, and the newline before ENDTAG in the end tag is not included in the data value.</li>
 <li>The ending tag must be on it's own line with no whitespace before or after it.</li>
+<li>If the closing ENDTAG is not found, the value includes all lines from the opening tag through the end of the file (lenient parsing).</li>
 <li>The multi-line value is modified at load so that each line in the value is delimited by a single '\n' character on all platforms. At save time it will be converted into the newline format used by the current platform.</li>
 </ul>
 <h1><a class="anchor" id="comments"></a>
@@ -235,6 +237,7 @@ NOTES</h1>
 <li>The collation (sorting) order used for sections and keys returned from iterators is NOT DEFINED. If collation order of the text is important then it should be done yourself by either supplying a replacement SI_STRLESS class, or by sorting the strings external to this library.</li>
 <li>Usage of the &lt;mbstring.h&gt; header on Windows can be disabled by defining SI_NO_MBCS. This is defined automatically on Windows CE platforms.</li>
 <li>Not thread-safe so manage your own locking</li>
+<li>On non-Windows platforms with SI_CONVERT_ICU, wide-character LoadFile() and SaveFile() convert paths to UTF-8 dynamically (no fixed path-length limit).</li>
 </ul>
 <h1><a class="anchor" id="contrib"></a>
 CONTRIBUTIONS</h1>
