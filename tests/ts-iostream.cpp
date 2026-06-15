@@ -34,8 +34,7 @@ protected:
       return 0;
     }
     const size_t nLimit = static_cast<size_t>(a_nCount);
-    const size_t nChunk =
-        m_remaining < nLimit ? m_remaining : nLimit;
+    const size_t nChunk = m_remaining < nLimit ? m_remaining : nLimit;
     std::memset(a_pDest, 'a', nChunk);
     m_remaining -= nChunk;
     return static_cast<std::streamsize>(nChunk);
