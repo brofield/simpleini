@@ -7,6 +7,8 @@ project(
 	LANGUAGES CXX C
 )
 
+include(GNUInstallDirs)
+
 option(SIMPLEINI_USE_SYSTEM_GTEST "Use system GoogleTest dependency" OFF)
 
 # disable in-source builds
@@ -24,8 +26,6 @@ target_include_directories(${PROJECT_NAME} INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
     $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-
-include(GNUInstallDirs)
 
 include(CMakePackageConfigHelpers)
 write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}ConfigVersion.cmake
