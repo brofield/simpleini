@@ -113,7 +113,16 @@ Installation</h1>
 </div><!-- fragment --><p>That's it! The library is ready to use.</p>
 <h1><a class="anchor" id="autotoc_md4"></a>
 Build and Test</h1>
-<p>While the library itself doesn't require building, you can build and run the test suite using CMake.</p>
+<p>While the library itself doesn't require building, you can build and run the test suite using CMake. A top-level <code>Makefile</code> wraps the usual CMake workflow for local development:</p>
+<div class="fragment"><div class="line">make help          # list targets</div>
+<div class="line">make check         # format-check, build, and test</div>
+<div class="line">make format        # apply clang-format</div>
+<div class="line">make format-check  # verify formatting</div>
+<div class="line">make test          # run ctest</div>
+<div class="line">make clean         # remove build/</div>
+</div><!-- fragment --><p>Requires <code>cmake</code>, a C++17 compiler, and <code>clang-format</code> for format targets. Test builds use <code>-Werror</code>. CMake remains the build system.</p>
+<p>CI (<code>.github/workflows/build-and-test.yml</code>) runs <code>make format-check</code> on Linux only; tests run on Linux (x64 and arm64), Windows, and macOS.</p>
+<p>Direct CMake usage:</p>
 <div class="fragment"><div class="line"># Configure the project</div>
 <div class="line">cmake -S . -B build</div>
 <div class="line"> </div>
@@ -169,7 +178,7 @@ SIMPLE USAGE</h3>
 <div class="line"> </div>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">pv</a> = <a class="code hl_struct" href="structSI__GenericNoCase.html">ini</a>.GetValue(<span class="stringliteral">&quot;section&quot;</span>, <span class="stringliteral">&quot;key&quot;</span>, <span class="stringliteral">&quot;default&quot;</span>);</div>
 <div class="line">   <a class="code hl_struct" href="structSI__GenericNoCase.html">ASSERT_STREQ</a>(<a class="code hl_struct" href="structSI__GenericNoCase.html">pv</a>, <span class="stringliteral">&quot;newvalue&quot;</span>);</div>
-<div class="ttc" id="astructSI__GenericNoCase_html"><div class="ttname"><a href="structSI__GenericNoCase.html">SI_GenericNoCase</a></div><div class="ttdef"><b>Definition</b> SimpleIni.h:2901</div></div>
+<div class="ttc" id="astructSI__GenericNoCase_html"><div class="ttname"><a href="structSI__GenericNoCase.html">SI_GenericNoCase</a></div><div class="ttdef"><b>Definition</b> SimpleIni.h:2652</div></div>
 </div><!-- fragment --><h3><a class="anchor" id="autotoc_md9"></a>
 LOADING DATA</h3>
 <div class="fragment"><div class="line">++</div>
