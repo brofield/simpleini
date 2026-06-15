@@ -47,7 +47,22 @@ That's it! The library is ready to use.
 
 # Build and Test
 
-While the library itself doesn't require building, you can build and run the test suite using CMake.
+While the library itself doesn't require building, you can build and run the test suite using CMake. A top-level `Makefile` wraps the usual CMake workflow for local development:
+
+```bash
+make help          # list targets
+make check         # format-check, build, and test
+make format        # apply clang-format
+make format-check  # verify formatting
+make test          # run ctest
+make clean         # remove build/
+```
+
+Requires `cmake`, a C++17 compiler, and `clang-format` for format targets. Test builds use `-Werror`. CMake remains the build system.
+
+CI (`.github/workflows/build-and-test.yml`) runs `make format-check` on Linux only; tests run on Linux (x64 and arm64), Windows, and macOS.
+
+Direct CMake usage:
 
 ```bash
 # Configure the project

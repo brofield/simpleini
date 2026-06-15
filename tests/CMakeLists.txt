@@ -54,7 +54,9 @@ set_target_properties(tests PROPERTIES
 	CXX_EXTENSIONS OFF
 )
 if(MSVC)
-	target_compile_options(tests PRIVATE /utf-8)
+	target_compile_options(tests PRIVATE /utf-8 /W4 /WX)
+else()
+	target_compile_options(tests PRIVATE -Wall -Wextra -Wpedantic -Werror)
 endif()
 
 add_test(NAME tests COMMAND tests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
