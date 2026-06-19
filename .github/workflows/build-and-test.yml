@@ -52,6 +52,33 @@ jobs:
           cmake --build build-system-gtest
           ctest --verbose --test-dir build-system-gtest
 
+  Clang:
+    runs-on: ubuntu-latest
+    env:
+      CC: clang
+      CXX: clang++
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Install requirements
+        run: |
+          sudo apt install clang cmake libgtest-dev
+
+      - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=OFF)
+        run: |
+          cmake -S . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF \
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+          cmake --build build
+          ctest --verbose --test-dir build
+
+      - name: Test with CMake (-DSIMPLEINI_USE_SYSTEM_GTEST=ON)
+        run: |
+          cmake -S . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON \
+            -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
+          cmake --build build-system-gtest
+          ctest --verbose --test-dir build-system-gtest
+
   MacOS:
     runs-on: macos-14
     steps:
@@ -76,7 +103,7 @@ jobs:
           ctest --verbose --test-dir build-system-gtest
 
   Doxygen:
-    needs: [Ubuntu, Windows, MacOS]
+    needs: [Ubuntu, Clang, Windows, MacOS]
     if: ${{ always() && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     steps:

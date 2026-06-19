@@ -7,9 +7,10 @@
 scalar value U+0000..U+10FFFF (excluding surrogate code points U+D800..U+DFFF).
 
 On Linux and Windows the reference is `c32rtomb` / `mbrtoc32` from `<uchar.h>`
-(with a UTF-8 locale). On macOS the reference is `iconv` (`UTF-32LE` ↔ `UTF-8`),
-because Apple Clang does not expose the C23 `<uchar.h>` conversion functions in
-C++ translation units.
+(with a UTF-8 locale). On macOS and FreeBSD the reference is `iconv`
+(`UTF-32LE` ↔ `UTF-8`): Apple Clang does not expose the C23 `<uchar.h>`
+conversion functions in C++ translation units, and FreeBSD's `c32rtomb` /
+`mbrtoc32` wrappers are unreliable for this differential test.
 
 For each code point the test checks:
 

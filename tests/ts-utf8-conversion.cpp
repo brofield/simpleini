@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#if defined(__APPLE__)
+#if defined(__APPLE__) || defined(__FreeBSD__)
 #define SI_TEST_UTF8_REF_ICONV 1
 #include <iconv.h>
 #elif defined(__has_include)
