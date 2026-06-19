@@ -79,6 +79,29 @@ jobs:
           cmake --build build-system-gtest
           ctest --verbose --test-dir build-system-gtest
 
+  FreeBSD:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Test in FreeBSD
+        uses: vmactions/freebsd-vm@v1
+        with:
+          release: "14.4"
+          usesh: true
+          prepare: |
+            pkg install -y cmake googletest
+          run: |
+            cmake -S . -B build -DSIMPLEINI_USE_SYSTEM_GTEST=OFF
+            cmake --build build
+            ctest --verbose --test-dir build
+
+            cmake -S . -B build-system-gtest -DSIMPLEINI_USE_SYSTEM_GTEST=ON
+            cmake --build build-system-gtest
+            ctest --verbose --test-dir build-system-gtest
+
   MacOS:
     runs-on: macos-14
     steps:
@@ -103,7 +126,7 @@ jobs:
           ctest --verbose --test-dir build-system-gtest
 
   Doxygen:
-    needs: [Ubuntu, Clang, Windows, MacOS]
+    needs: [Ubuntu, Clang, Windows, MacOS, FreeBSD]
     if: ${{ always() && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     steps:

@@ -63,6 +63,14 @@ bool IsAssignedScalar(char32_t cp) {
   return cp <= 0x10FFFF && !(cp >= 0xD800 && cp <= 0xDFFF);
 }
 
+#if defined(__FreeBSD__)
+bool IconvReferenceSkipsScalar(char32_t cp) {
+  // FreeBSD iconv treats U+FEFF at the start of a conversion as a byte-order
+  // mark and may emit no output instead of the usual EF BB BF sequence.
+  return cp == 0xFEFF;
+}
+#endif
+
 #if defined(SI_TEST_UTF8_REF_ICONV)
 
 bool SystemEncode(char32_t cp, char *buf, size_t cap, size_t &outLen) {
@@ -259,6 +267,11 @@ TEST(Utf8Conversion, EncodeAndDecodeMatchSystemLibraryForAllAssignedScalars) {
     if (!IsAssignedScalar(cp)) {
       continue;
     }
+#if defined(__FreeBSD__)
+    if (IconvReferenceSkipsScalar(cp)) {
+      continue;
+    }
+#endif
 
     char sysBuf[8] = {};
     char ourBuf[8] = {};
@@ -292,6 +305,20 @@ TEST(Utf8Conversion, EncodeAndDecodeMatchSystemLibraryForAllAssignedScalars) {
         << std::hex << cp;
     ASSERT_EQ(roundCp, cp) << std::hex << cp;
   }
+}
+
+TEST(Utf8Conversion, BomScalar_EncodesAndDecodes) {
+  char buf[4] = {};
+  const int n = SI_UTF8::Encode(0xFEFF, buf, sizeof(buf));
+  ASSERT_EQ(n, 3);
+  ASSERT_EQ((unsigned char)buf[0], 0xEF);
+  ASSERT_EQ((unsigned char)buf[1], 0xBB);
+  ASSERT_EQ((unsigned char)buf[2], 0xBF);
+
+  const char *src = buf;
+  char32_t cp = 0;
+  ASSERT_TRUE(SI_UTF8::Decode(src, buf + n, cp));
+  ASSERT_EQ(cp, 0xFEFF);
 }
 
 TEST(Utf8Conversion, OutOfRangeScalar_EncodesReplacement) {
