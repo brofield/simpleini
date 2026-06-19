@@ -63,8 +63,13 @@ endif()
 
 add_test(NAME tests COMMAND tests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
-if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+if(APPLE)
 	target_link_libraries(tests PRIVATE iconv)
+endif()
+if(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+	# libc provides iconv; pkg puts GNU libiconv's iconv.h in /usr/local/include,
+	# which defines libiconv_* symbols and breaks linking without -liconv.
+	target_include_directories(tests BEFORE PRIVATE /usr/include)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
