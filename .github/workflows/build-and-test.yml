@@ -80,6 +80,7 @@ jobs:
           ctest --verbose --test-dir build-system-gtest
 
   FreeBSD:
+    if: false # disabled: GTest header mismatch with pkg googletest in /usr/local/include
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -126,7 +127,7 @@ jobs:
           ctest --verbose --test-dir build-system-gtest
 
   Doxygen:
-    needs: [Ubuntu, Clang, Windows, MacOS, FreeBSD]
+    needs: [Ubuntu, Clang, Windows, MacOS]
     if: ${{ always() && github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     steps:

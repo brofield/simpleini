@@ -60,7 +60,7 @@ make clean         # remove build/
 
 Requires `cmake`, a C++17 compiler, and `clang-format` for format targets. Test builds use `-Werror`. CMake remains the build system.
 
-CI (`.github/workflows/build-and-test.yml`) runs `make format-check` on Linux only; tests run on Linux (x64 and arm64), Windows, macOS, and FreeBSD (14.4 via a VM on `ubuntu-latest`).
+CI (`.github/workflows/build-and-test.yml`) runs `make format-check` on Linux only; tests run on Linux (x64 and arm64), Windows, macOS, and FreeBSD (14.4 via a VM on `ubuntu-latest`, currently disabled).
 
 Direct CMake usage:
 
