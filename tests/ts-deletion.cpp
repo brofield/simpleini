@@ -124,7 +124,7 @@ TEST_F(TestDeletion, TestDeleteValueMultikey) {
 
   CSimpleIniA::TNamesDepend values;
   ini.GetAllValues("section", "key", values);
-  ASSERT_EQ(values.size(), 3);
+  ASSERT_EQ(values.size(), 3u);
 
   // Delete specific value
   bool result = ini.DeleteValue("section", "key", "value2");
@@ -133,7 +133,7 @@ TEST_F(TestDeletion, TestDeleteValueMultikey) {
   // Should have 2 values left
   values.clear();
   ini.GetAllValues("section", "key", values);
-  ASSERT_EQ(values.size(), 2);
+  ASSERT_EQ(values.size(), 2u);
 
   // Verify value2 is gone
   bool found = false;
@@ -200,7 +200,7 @@ TEST_F(TestDeletion, TestDeleteValueMissing) {
   // Values should still be there
   CSimpleIniA::TNamesDepend values;
   ini.GetAllValues("section", "key", values);
-  ASSERT_EQ(values.size(), 2);
+  ASSERT_EQ(values.size(), 2u);
 }
 
 // Test Delete all keys one by one
@@ -301,7 +301,7 @@ TEST_F(TestDeletion, TestDeleteValueExactMatch) {
 
   CSimpleIniA::TNamesDepend values;
   ini.GetAllValues("section", "key", values);
-  ASSERT_EQ(values.size(), 2);
+  ASSERT_EQ(values.size(), 2u);
 
   // Verify "value" is gone but others remain
   bool found_value123 = false, found_123value = false, found_value = false;

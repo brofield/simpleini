@@ -227,7 +227,7 @@ TEST_F(TestNumeric, TestMultikeyNumeric) {
   // Get all values
   CSimpleIniA::TNamesDepend values;
   ini.GetAllValues("numbers", "value", values);
-  ASSERT_EQ(values.size(), 3);
+  ASSERT_EQ(values.size(), 3u);
 }
 
 // Test SetLongValue with force replace in multikey mode

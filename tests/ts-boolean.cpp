@@ -184,7 +184,7 @@ TEST_F(TestBoolean, TestBooleanMultikey) {
   // Get all values
   CSimpleIniA::TNamesDepend values;
   ini.GetAllValues("bools", "flag", values);
-  ASSERT_EQ(values.size(), 3);
+  ASSERT_EQ(values.size(), 3u);
 }
 
 // Test SetBoolValue with force replace

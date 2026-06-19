@@ -109,7 +109,7 @@ TEST_F(TestCaseSensitive, TestSectionCaseSensitive) {
   // Should have 3 sections
   CSimpleIniCaseA::TNamesDepend sections;
   ini.GetAllSections(sections);
-  ASSERT_EQ(sections.size(), 3);
+  ASSERT_EQ(sections.size(), 3u);
 }
 
 // Case-sensitive key names
@@ -159,7 +159,7 @@ TEST_F(TestCaseSensitive, TestSetValueCaseSensitive) {
   // Should have 2 sections now
   CSimpleIniCaseA::TNamesDepend sections;
   ini.GetAllSections(sections);
-  ASSERT_EQ(sections.size(), 2);
+  ASSERT_EQ(sections.size(), 2u);
 
   ASSERT_STREQ(ini.GetValue("Section", "Key"), "value3");
   ASSERT_STREQ(ini.GetValue("SECTION", "KEY"), "value2");
@@ -213,7 +213,7 @@ TEST_F(TestCaseInsensitive, TestGetAllKeysCaseInsensitive) {
   ini.GetAllKeys("section", keys);
 
   // Should have 2 unique keys (key1 and key2)
-  ASSERT_EQ(keys.size(), 2);
+  ASSERT_EQ(keys.size(), 2u);
 }
 
 // Case-sensitive GetAllKeys
@@ -232,7 +232,7 @@ TEST_F(TestCaseSensitive, TestGetAllKeysCaseSensitive) {
   ini.GetAllKeys("section", keys);
 
   // Should have 3 keys (key1, KEY1, key2)
-  ASSERT_EQ(keys.size(), 3);
+  ASSERT_EQ(keys.size(), 3u);
 }
 
 // Values are always case-sensitive

@@ -166,7 +166,7 @@ TEST_F(TestSections, TestGetAllSections) {
   CSimpleIniA::TNamesDepend sections;
   ini.GetAllSections(sections);
 
-  ASSERT_EQ(sections.size(), 3);
+  ASSERT_EQ(sections.size(), 3u);
 
   // Verify section names
   bool found1 = false, found2 = false, found3 = false;
@@ -196,7 +196,7 @@ TEST_F(TestSections, TestGetAllKeys) {
   CSimpleIniA::TNamesDepend keys;
   bool result = ini.GetAllKeys("section1", keys);
   ASSERT_TRUE(result);
-  ASSERT_EQ(keys.size(), 3);
+  ASSERT_EQ(keys.size(), 3u);
 
   // Verify key names
   bool found1 = false, found2 = false, found3 = false;
@@ -223,7 +223,7 @@ TEST_F(TestSections, TestGetAllKeysMissing) {
   CSimpleIniA::TNamesDepend keys;
   bool result = ini.GetAllKeys("missing", keys);
   ASSERT_FALSE(result);
-  ASSERT_EQ(keys.size(), 0);
+  ASSERT_EQ(keys.size(), 0u);
 }
 
 // Test GetAllKeys with multikey
@@ -244,7 +244,7 @@ TEST_F(TestSections, TestGetAllKeysMultikey) {
   ASSERT_TRUE(result);
 
   // Should return unique keys
-  ASSERT_EQ(keys.size(), 2);
+  ASSERT_EQ(keys.size(), 2u);
 }
 
 // Test creating empty section
@@ -309,7 +309,7 @@ TEST_F(TestSections, TestEmptyIni) {
 
   CSimpleIniA::TNamesDepend sections;
   ini.GetAllSections(sections);
-  ASSERT_EQ(sections.size(), 0);
+  ASSERT_EQ(sections.size(), 0u);
 
   ASSERT_FALSE(ini.SectionExists("anything"));
   ASSERT_EQ(ini.GetSectionSize("anything"), -1);

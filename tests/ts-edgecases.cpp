@@ -290,7 +290,7 @@ TEST_F(TestEdgeCases, TestManySections) {
 
   CSimpleIniA::TNamesDepend sections;
   ini.GetAllSections(sections);
-  ASSERT_EQ(sections.size(), 1000);
+  ASSERT_EQ(sections.size(), 1000u);
 
   // Verify a few
   ASSERT_STREQ(ini.GetValue("section0", "key"), "value");
