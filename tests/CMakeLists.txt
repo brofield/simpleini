@@ -63,7 +63,7 @@ endif()
 
 add_test(NAME tests COMMAND tests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
-if(APPLE)
+if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
 	target_link_libraries(tests PRIVATE iconv)
 endif()
 
