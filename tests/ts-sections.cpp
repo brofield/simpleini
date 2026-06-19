@@ -69,7 +69,7 @@ TEST_F(TestSections, TestGetSection) {
 
   const CSimpleIniA::TKeyVal *section = ini.GetSection("section1");
   ASSERT_NE(section, nullptr);
-  ASSERT_EQ(section->size(), 3);
+  ASSERT_EQ(section->size(), 3u);
 
   // Verify we can iterate the section
   int count = 0;
@@ -300,7 +300,7 @@ TEST_F(TestSections, TestGetSectionMultikey) {
   ASSERT_NE(section, nullptr);
 
   // Should have 3 total entries (not 2)
-  ASSERT_EQ(section->size(), 3);
+  ASSERT_EQ(section->size(), 3u);
 }
 
 // Test empty ini

@@ -318,7 +318,7 @@ TEST(Utf8Conversion, BomScalar_EncodesAndDecodes) {
   const char *src = buf;
   char32_t cp = 0;
   ASSERT_TRUE(SI_UTF8::Decode(src, buf + n, cp));
-  ASSERT_EQ(cp, 0xFEFF);
+  ASSERT_EQ(cp, char32_t{0xFEFF});
 }
 
 TEST(Utf8Conversion, OutOfRangeScalar_EncodesReplacement) {
