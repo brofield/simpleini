@@ -121,7 +121,7 @@ Build and Test</h1>
 <div class="line">make test          # run ctest</div>
 <div class="line">make clean         # remove build/</div>
 </div><!-- fragment --><p>Requires <code>cmake</code>, a C++17 compiler, and <code>clang-format</code> for format targets. Test builds use <code>-Werror</code>. CMake remains the build system.</p>
-<p>CI (<code>.github/workflows/build-and-test.yml</code>) runs <code>make format-check</code> on Linux only; tests run on Linux (x64 and arm64), Windows, macOS, and FreeBSD (14.4 via a VM on <code>ubuntu-latest</code>).</p>
+<p>CI (<code>.github/workflows/build-and-test.yml</code>) runs <code>make format-check</code> on Linux only; tests run on Linux (x64 and arm64), Windows, macOS, and FreeBSD (14.4 via a VM on <code>ubuntu-latest</code>, currently disabled).</p>
 <p>Direct CMake usage:</p>
 <div class="fragment"><div class="line"># Configure the project</div>
 <div class="line">cmake -S . -B build</div>
