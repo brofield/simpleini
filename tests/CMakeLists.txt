@@ -63,18 +63,21 @@ endif()
 
 add_test(NAME tests COMMAND tests WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} GTest::gtest_main)
-if(APPLE OR CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
-	if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD")
-		find_library(ICONV_LIBRARY NAMES iconv PATHS /usr/local/lib NO_DEFAULT_PATH)
-		find_path(ICONV_INCLUDE_DIR NAMES iconv.h PATHS /usr/local/include NO_DEFAULT_PATH)
-		
-		target_include_directories(tests PRIVATE ${ICONV_INCLUDE_DIR})
-		target_link_libraries(tests PRIVATE ${ICONV_LIBRARY})
-	else()
-		find_package(Iconv REQUIRED)
-		target_include_directories(tests PRIVATE ${Iconv_INCLUDE_DIRS})
-		target_link_libraries(tests PRIVATE ${Iconv_LIBRARIES})
+if(NOT SIMPLEINI_USE_SYSTEM_GTEST)
+	# Bundled GTest must win over a system install (e.g. FreeBSD ports in /usr/local/include).
+	get_target_property(_gtest_include_dirs GTest::gtest INTERFACE_INCLUDE_DIRECTORIES)
+	if(_gtest_include_dirs)
+		target_include_directories(tests BEFORE PRIVATE ${_gtest_include_dirs})
 	endif()
+endif()
+if(APPLE)
+	find_package(Iconv REQUIRED)
+	target_include_directories(tests PRIVATE ${Iconv_INCLUDE_DIRS})
+	target_link_libraries(tests PRIVATE ${Iconv_LIBRARIES})
+elseif(CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+	# Use libc iconv. Avoid /usr/local/include: pkg's GNU libiconv and googletest
+	# headers would otherwise shadow the bundled GTest includes above.
+	target_include_directories(tests BEFORE PRIVATE /usr/include)
 endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
