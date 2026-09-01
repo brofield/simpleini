@@ -1858,6 +1858,11 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::
     return true;
   }
 
+  // a value that is itself quoted needs wrapping, or the loader strips its quotes
+  if (a_pData > pStart + 1 && *pStart == '"' && *(a_pData - 1) == '"') {
+    return true;
+  }
+
   return false;
 }
 
