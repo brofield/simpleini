@@ -450,3 +450,27 @@ TEST_F(TestMultiline, TestEndTagCollisionRoundTrip) {
   ASSERT_EQ(rc, SI_OK);
   ASSERT_STREQ(reload.GetValue("section", "key"), value);
 }
+
+// Quoting must not hide a multiline value from the multiline serializer.
+TEST_F(TestMultiline, TestLeadingWhitespaceWithQuotesRoundTrip) {
+  const char *values[] = {" first\nsecond",  "\tfirst\nsecond",
+                          "\nsecond",        " \n",
+                          " first\nsecond ", " first\nEND_OF_TEXT\nlast"};
+  for (const char *value : values) {
+    SCOPED_TRACE(value);
+    ini.SetQuotes(true);
+    ASSERT_EQ(ini.SetValue("section", "key", value), SI_INSERTED);
+
+    std::string output;
+    ASSERT_EQ(ini.Save(output), SI_OK);
+    EXPECT_NE(output.find("key = <<<END_OF_TEXT"), std::string::npos);
+
+    CSimpleIniA reload;
+    reload.SetUnicode();
+    reload.SetQuotes(true);
+    reload.SetMultiLine(true);
+    ASSERT_EQ(reload.LoadData(output), SI_OK);
+    ASSERT_STREQ(reload.GetValue("section", "key"), value);
+    ini.Reset();
+  }
+}
