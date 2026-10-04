@@ -3,6 +3,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <cstdio>
 #include <cstdlib>
 #include <cstring>
 #include <new>
@@ -13,7 +14,13 @@
 #endif
 
 // ---------------------------------------------------------------------------
-// malloc interposer (Linux + glibc) for LoadData leak regression tests
+// Allocation-failure hooks (Linux + glibc) for LoadData leak regression tests.
+//
+// SimpleIni allocates with new (std::nothrow), which libstdc++ implements in
+// a DSO. --wrap=malloc does not see those calls, so the nothrow operator new
+// replacements apply the same fail policy. On success they must delegate to
+// throwing ::operator new, not malloc; otherwise ASan reports malloc vs
+// operator delete when GoogleTest/libstdc++ free a nothrow temporary buffer.
 // ---------------------------------------------------------------------------
 #if defined(__linux__) && defined(__GLIBC__)
 
@@ -22,27 +29,48 @@ static std::atomic<size_t> g_small_alloc_threshold{256};
 static std::atomic<bool> g_fail_after_n_allocs{false};
 static std::atomic<int> g_alloc_budget{0};
 
-extern "C" void *__real_malloc(size_t size);
-
-extern "C" void *__wrap_malloc(size_t size) {
+static bool ShouldFailAlloc(size_t size) {
   if (g_fail_after_n_allocs.load()) {
     const int budget = g_alloc_budget.fetch_sub(1);
     if (budget <= 0) {
-      return nullptr;
+      return true;
     }
   }
   if (g_fail_small_allocs && size < g_small_alloc_threshold.load()) {
+    return true;
+  }
+  return false;
+}
+
+extern "C" void *__real_malloc(size_t size);
+
+extern "C" void *__wrap_malloc(size_t size) {
+  if (ShouldFailAlloc(size)) {
     return nullptr;
   }
   return __real_malloc(size);
 }
 
 void *operator new(std::size_t size, const std::nothrow_t &) noexcept {
-  return __wrap_malloc(size);
+  if (ShouldFailAlloc(size)) {
+    return nullptr;
+  }
+  try {
+    return ::operator new(size);
+  } catch (...) {
+    return nullptr;
+  }
 }
 
 void *operator new[](std::size_t size, const std::nothrow_t &) noexcept {
-  return __wrap_malloc(size);
+  if (ShouldFailAlloc(size)) {
+    return nullptr;
+  }
+  try {
+    return ::operator new[](size);
+  } catch (...) {
+    return nullptr;
+  }
 }
 
 static size_t CurrentHeapBytes() {
@@ -51,6 +79,19 @@ static size_t CurrentHeapBytes() {
   const size_t bytes = static_cast<size_t>(mallinfo().uordblks);
 #pragma GCC diagnostic pop
   return bytes;
+}
+
+static FILE *WriteTempIni(const char *data) {
+  FILE *fp = tmpfile();
+  if (!fp) {
+    return nullptr;
+  }
+  const size_t n = strlen(data);
+  if (fwrite(data, 1, n, fp) != n || fseek(fp, 0, SEEK_SET) != 0) {
+    fclose(fp);
+    return nullptr;
+  }
+  return fp;
 }
 
 #endif // __linux__ && __GLIBC__
@@ -303,14 +344,14 @@ TEST(DeleteRegression, DoesNotLeakCopiedComments) {
 }
 #endif
 
-// Issue 1: LoadData must not leak its parse buffer when parsing fails after
-// conversion (second LoadData into an instance that already owns m_pData).
+// Issue 1: LoadData must not leak its parse buffer when AddEntry / CopyString
+// fails on a second LoadData into an instance that already owns m_pData.
 #if defined(__linux__) && defined(__GLIBC__)
 TEST(LoadDataRegression, DoesNotLeakParseBufferOnAddEntryFailure) {
   RegressionIni ini;
   ASSERT_EQ(ini.LoadData("[existing]\nkey = value\n"), SI_OK);
 
-  std::string second = "; file comment\n\n";
+  std::string second;
   for (int i = 0; i < 500; i++) {
     second += "[section" + std::to_string(i) + "]\nkey = value\n";
   }
@@ -328,6 +369,35 @@ TEST(LoadDataRegression, DoesNotLeakParseBufferOnAddEntryFailure) {
 }
 #else
 TEST(LoadDataRegression, DoesNotLeakParseBufferOnAddEntryFailure) {
+  GTEST_SKIP() << "malloc interposer requires Linux glibc";
+}
+#endif
+
+// Incremental LoadData must free the parse buffer if file-comment CopyString fails.
+#if defined(__linux__) && defined(__GLIBC__)
+TEST(LoadDataRegression, DoesNotLeakParseBufferOnFileCommentCopyFailure) {
+  RegressionIni ini;
+  ASSERT_EQ(ini.LoadData("[existing]\nkey = value\n"), SI_OK);
+
+  std::string second = "; file comment\n\n[section]\nkey = ";
+  second.append(512, 'x');
+  second += "\n";
+
+  const size_t heap_before = CurrentHeapBytes();
+
+  g_fail_small_allocs = true;
+  const SI_Error rc = ini.LoadData(second);
+  g_fail_small_allocs = false;
+
+  ASSERT_EQ(rc, SI_NOMEM);
+  ASSERT_TRUE(ini.SectionExists("existing"));
+  ASSERT_FALSE(ini.SectionExists("section"));
+
+  const size_t heap_after = CurrentHeapBytes();
+  ASSERT_LE(heap_after, heap_before + 4096);
+}
+#else
+TEST(LoadDataRegression, DoesNotLeakParseBufferOnFileCommentCopyFailure) {
   GTEST_SKIP() << "malloc interposer requires Linux glibc";
 }
 #endif
@@ -367,6 +437,61 @@ TEST(LoadDataRegression, DoesNotPartiallyMergeOnAddEntryFailure) {
 }
 #endif
 
+// First LoadData allocates the parse buffer before any CopyString.
+#if defined(__linux__) && defined(__GLIBC__)
+TEST(LoadDataRegression, ReturnsNomemWhenParseBufferAllocFails) {
+  RegressionIni ini;
+  g_fail_small_allocs = true;
+  const SI_Error rc = ini.LoadData("[section]\nkey = value\n");
+  g_fail_small_allocs = false;
+
+  ASSERT_EQ(rc, SI_NOMEM);
+  ASSERT_TRUE(ini.IsEmpty());
+}
+#else
+TEST(LoadDataRegression, ReturnsNomemWhenParseBufferAllocFails) {
+  GTEST_SKIP() << "malloc interposer requires Linux glibc";
+}
+#endif
+
+#if defined(__linux__) && defined(__GLIBC__)
+TEST(LoadFileRegression, ReturnsNomemWhenReadBufferAllocFails) {
+  FILE *fp = WriteTempIni("[section]\nkey = value\n");
+  ASSERT_NE(fp, nullptr);
+
+  RegressionIni ini;
+  g_fail_small_allocs = true;
+  const SI_Error rc = ini.LoadFile(fp);
+  g_fail_small_allocs = false;
+  fclose(fp);
+
+  ASSERT_EQ(rc, SI_NOMEM);
+  ASSERT_TRUE(ini.IsEmpty());
+}
+
+TEST(LoadFileRegression, ReturnsNomemWhenLoadDataParseBufferFails) {
+  FILE *fp = WriteTempIni("[section]\nkey = value\n");
+  ASSERT_NE(fp, nullptr);
+
+  RegressionIni ini;
+  g_fail_after_n_allocs = true;
+  g_alloc_budget = 1;
+  const SI_Error rc = ini.LoadFile(fp);
+  g_fail_after_n_allocs = false;
+  fclose(fp);
+
+  ASSERT_EQ(rc, SI_NOMEM);
+  ASSERT_TRUE(ini.IsEmpty());
+}
+#else
+TEST(LoadFileRegression, ReturnsNomemWhenReadBufferAllocFails) {
+  GTEST_SKIP() << "malloc interposer requires Linux glibc";
+}
+TEST(LoadFileRegression, ReturnsNomemWhenLoadDataParseBufferFails) {
+  GTEST_SKIP() << "malloc interposer requires Linux glibc";
+}
+#endif
+
 // SetValue must release replaced value strings stored in m_strings.
 #if defined(__linux__) && defined(__GLIBC__)
 TEST(SetValueRegression, DoesNotLeakReplacedValues) {
@@ -383,6 +508,22 @@ TEST(SetValueRegression, DoesNotLeakReplacedValues) {
 }
 #else
 TEST(SetValueRegression, DoesNotLeakReplacedValues) {
+  GTEST_SKIP() << "malloc interposer requires Linux glibc";
+}
+#endif
+
+#if defined(__linux__) && defined(__GLIBC__)
+TEST(SetValueRegression, ReturnsNomemWhenCopyStringAllocFails) {
+  RegressionIni ini;
+  g_fail_small_allocs = true;
+  const SI_Error rc = ini.SetValue("section", "key", "value");
+  g_fail_small_allocs = false;
+
+  ASSERT_EQ(rc, SI_NOMEM);
+  ASSERT_TRUE(ini.IsEmpty());
+}
+#else
+TEST(SetValueRegression, ReturnsNomemWhenCopyStringAllocFails) {
   GTEST_SKIP() << "malloc interposer requires Linux glibc";
 }
 #endif
