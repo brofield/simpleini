@@ -1191,18 +1191,18 @@ $(document).ready(function() { init_codefold(0); });
 <div class="line"><a id="l01880" name="l01880"></a><span class="lineno"> 1880</span>    <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
 <div class="line"><a id="l01881" name="l01881"></a><span class="lineno"> 1881</span>  }</div>
 <div class="line"><a id="l01882" name="l01882"></a><span class="lineno"> 1882</span> </div>
-<div class="line"><a id="l01883" name="l01883"></a><span class="lineno"> 1883</span>  <span class="comment">// check for prefix</span></div>
-<div class="line"><a id="l01884" name="l01884"></a><span class="lineno"> 1884</span>  <span class="keywordflow">if</span> (IsSpace(*a_pData)) {</div>
-<div class="line"><a id="l01885" name="l01885"></a><span class="lineno"> 1885</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><a id="l01886" name="l01886"></a><span class="lineno"> 1886</span>  }</div>
-<div class="line"><a id="l01887" name="l01887"></a><span class="lineno"> 1887</span> </div>
-<div class="line"><a id="l01888" name="l01888"></a><span class="lineno"> 1888</span>  <span class="comment">// embedded newlines</span></div>
-<div class="line"><a id="l01889" name="l01889"></a><span class="lineno"> 1889</span>  <span class="keyword">const</span> SI_CHAR *pStart = a_pData;</div>
-<div class="line"><a id="l01890" name="l01890"></a><span class="lineno"> 1890</span>  <span class="keywordflow">while</span> (*a_pData) {</div>
-<div class="line"><a id="l01891" name="l01891"></a><span class="lineno"> 1891</span>    <span class="keywordflow">if</span> (IsNewLineChar(*a_pData)) {</div>
-<div class="line"><a id="l01892" name="l01892"></a><span class="lineno"> 1892</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><a id="l01893" name="l01893"></a><span class="lineno"> 1893</span>    }</div>
-<div class="line"><a id="l01894" name="l01894"></a><span class="lineno"> 1894</span>    ++a_pData;</div>
+<div class="line"><a id="l01883" name="l01883"></a><span class="lineno"> 1883</span>  <span class="comment">// embedded newlines</span></div>
+<div class="line"><a id="l01884" name="l01884"></a><span class="lineno"> 1884</span>  <span class="keyword">const</span> SI_CHAR *pStart = a_pData;</div>
+<div class="line"><a id="l01885" name="l01885"></a><span class="lineno"> 1885</span>  <span class="keywordflow">while</span> (*a_pData) {</div>
+<div class="line"><a id="l01886" name="l01886"></a><span class="lineno"> 1886</span>    <span class="keywordflow">if</span> (IsNewLineChar(*a_pData)) {</div>
+<div class="line"><a id="l01887" name="l01887"></a><span class="lineno"> 1887</span>      <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><a id="l01888" name="l01888"></a><span class="lineno"> 1888</span>    }</div>
+<div class="line"><a id="l01889" name="l01889"></a><span class="lineno"> 1889</span>    ++a_pData;</div>
+<div class="line"><a id="l01890" name="l01890"></a><span class="lineno"> 1890</span>  }</div>
+<div class="line"><a id="l01891" name="l01891"></a><span class="lineno"> 1891</span> </div>
+<div class="line"><a id="l01892" name="l01892"></a><span class="lineno"> 1892</span>  <span class="comment">// check for prefix only after ruling out embedded newlines</span></div>
+<div class="line"><a id="l01893" name="l01893"></a><span class="lineno"> 1893</span>  <span class="keywordflow">if</span> (IsSpace(*pStart)) {</div>
+<div class="line"><a id="l01894" name="l01894"></a><span class="lineno"> 1894</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
 <div class="line"><a id="l01895" name="l01895"></a><span class="lineno"> 1895</span>  }</div>
 <div class="line"><a id="l01896" name="l01896"></a><span class="lineno"> 1896</span> </div>
 <div class="line"><a id="l01897" name="l01897"></a><span class="lineno"> 1897</span>  <span class="comment">// check for suffix (ensure we don&#39;t go before start of string)</span></div>
