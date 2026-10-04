@@ -1880,11 +1880,6 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::
     return false;
   }
 
-  // check for prefix
-  if (IsSpace(*a_pData)) {
-    return true;
-  }
-
   // embedded newlines
   const SI_CHAR *pStart = a_pData;
   while (*a_pData) {
@@ -1892,6 +1887,11 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::
       return false;
     }
     ++a_pData;
+  }
+
+  // check for prefix only after ruling out embedded newlines
+  if (IsSpace(*pStart)) {
+    return true;
   }
 
   // check for suffix (ensure we don't go before start of string)
