@@ -13,7 +13,13 @@
 #endif
 
 // ---------------------------------------------------------------------------
-// malloc interposer (Linux + glibc) for LoadData leak regression tests
+// Allocation-failure hooks (Linux + glibc) for LoadData leak regression tests.
+//
+// SimpleIni allocates with new (std::nothrow), which libstdc++ implements in
+// a DSO. --wrap=malloc does not see those calls, so the nothrow operator new
+// replacements apply the same fail policy. On success they must delegate to
+// throwing ::operator new, not malloc; otherwise ASan reports malloc vs
+// operator delete when GoogleTest/libstdc++ free a nothrow temporary buffer.
 // ---------------------------------------------------------------------------
 #if defined(__linux__) && defined(__GLIBC__)
 
@@ -22,27 +28,48 @@ static std::atomic<size_t> g_small_alloc_threshold{256};
 static std::atomic<bool> g_fail_after_n_allocs{false};
 static std::atomic<int> g_alloc_budget{0};
 
-extern "C" void *__real_malloc(size_t size);
-
-extern "C" void *__wrap_malloc(size_t size) {
+static bool ShouldFailAlloc(size_t size) {
   if (g_fail_after_n_allocs.load()) {
     const int budget = g_alloc_budget.fetch_sub(1);
     if (budget <= 0) {
-      return nullptr;
+      return true;
     }
   }
   if (g_fail_small_allocs && size < g_small_alloc_threshold.load()) {
+    return true;
+  }
+  return false;
+}
+
+extern "C" void *__real_malloc(size_t size);
+
+extern "C" void *__wrap_malloc(size_t size) {
+  if (ShouldFailAlloc(size)) {
     return nullptr;
   }
   return __real_malloc(size);
 }
 
 void *operator new(std::size_t size, const std::nothrow_t &) noexcept {
-  return __wrap_malloc(size);
+  if (ShouldFailAlloc(size)) {
+    return nullptr;
+  }
+  try {
+    return ::operator new(size);
+  } catch (...) {
+    return nullptr;
+  }
 }
 
 void *operator new[](std::size_t size, const std::nothrow_t &) noexcept {
-  return __wrap_malloc(size);
+  if (ShouldFailAlloc(size)) {
+    return nullptr;
+  }
+  try {
+    return ::operator new[](size);
+  } catch (...) {
+    return nullptr;
+  }
 }
 
 static size_t CurrentHeapBytes() {
