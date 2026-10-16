@@ -111,7 +111,7 @@ jobs:
             ctest --verbose --test-dir build-system-gtest
 
   MacOS:
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
