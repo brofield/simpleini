@@ -1816,10 +1816,16 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::IsMultiLineData(
   //  * whitespace prefix
   //  * embedded newlines
   //  * whitespace suffix
+  //  * a "<<<" prefix, which would be read back as a multi-line tag
 
   // empty string
   if (!*a_pData) {
     return false;
+  }
+
+  // a leading "<<<" must be written as multi-line to survive a reload
+  if (IsMultiLineTag(a_pData)) {
+    return true;
   }
 
   // check for prefix

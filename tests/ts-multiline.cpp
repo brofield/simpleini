@@ -474,3 +474,27 @@ TEST_F(TestMultiline, TestLeadingWhitespaceWithQuotesRoundTrip) {
     ini.Reset();
   }
 }
+
+// A single-line value that starts with "<<<" must not be read back as the
+// start of a multiline block.
+TEST_F(TestMultiline, TestLeadingMultilineMarkerRoundTrip) {
+  const char *values[] = {"<<<", "<<<x", "<<< x", "<<<END_OF_TEXT", "<<<a=b"};
+  for (bool quotes : {false, true}) {
+    for (const char *value : values) {
+      SCOPED_TRACE(value);
+      ini.SetQuotes(quotes);
+      ASSERT_EQ(ini.SetValue("section", "key", value), SI_INSERTED);
+
+      std::string output;
+      ASSERT_EQ(ini.Save(output), SI_OK);
+
+      CSimpleIniA reload;
+      reload.SetUnicode();
+      reload.SetQuotes(quotes);
+      reload.SetMultiLine(true);
+      ASSERT_EQ(reload.LoadData(output), SI_OK);
+      ASSERT_STREQ(reload.GetValue("section", "key"), value);
+      ini.Reset();
+    }
+  }
+}
