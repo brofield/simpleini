@@ -1,4 +1,5 @@
 var searchData=
 [
-  ['simpleini_0',['simpleini',['../md_README.html',1,'simpleini'],['../index.html',1,'SimpleIni']]]
+  ['and_20keys_0',['GETTING SECTIONS AND KEYS',['../md_README.html#autotoc_md10',1,'']]],
+  ['and_20test_1',['Build and Test',['../md_README.html#autotoc_md4',1,'']]]
 ];

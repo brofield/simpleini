@@ -1,8 +1,8 @@
 var searchData=
 [
-  ['save_0',['save',['../classCSimpleIniTempl.html#a6ec10daab297e92cdffe024ba5e6d999',1,'CSimpleIniTempl::Save(OutputWriter &amp;a_oOutput, bool a_bAddSignature=false) const'],['../classCSimpleIniTempl.html#a9fc5894f12a31b8496a9627cd0f42139',1,'CSimpleIniTempl::Save(std::string &amp;a_sBuffer, bool a_bAddSignature=false) const']]],
+  ['save_0',['Save',['../classCSimpleIniTempl.html#a6ec10daab297e92cdffe024ba5e6d999',1,'CSimpleIniTempl::Save(OutputWriter &amp;a_oOutput, bool a_bAddSignature=false) const'],['../classCSimpleIniTempl.html#a9fc5894f12a31b8496a9627cd0f42139',1,'CSimpleIniTempl::Save(std::string &amp;a_sBuffer, bool a_bAddSignature=false) const']]],
   ['save_20order_1',['SAVE ORDER',['../index.html#save',1,'']]],
-  ['savefile_2',['savefile',['../classCSimpleIniTempl.html#af00e754689a94cbe87b387f99f7a5d01',1,'CSimpleIniTempl::SaveFile(const char *a_pszFile, bool a_bAddSignature=true) const'],['../classCSimpleIniTempl.html#a3c3f677c1515e08751cb52a1dfaf1a93',1,'CSimpleIniTempl::SaveFile(FILE *a_pFile, bool a_bAddSignature=false) const']]],
+  ['savefile_2',['SaveFile',['../classCSimpleIniTempl.html#af00e754689a94cbe87b387f99f7a5d01',1,'CSimpleIniTempl::SaveFile(const char *a_pszFile, bool a_bAddSignature=true) const'],['../classCSimpleIniTempl.html#a3c3f677c1515e08751cb52a1dfaf1a93',1,'CSimpleIniTempl::SaveFile(FILE *a_pFile, bool a_bAddSignature=false) const']]],
   ['saving_20data_3',['SAVING DATA',['../md_README.html#autotoc_md14',1,'']]],
   ['sectionexists_4',['SectionExists',['../classCSimpleIniTempl.html#aa2f8e681ae0217fcd4efe8e23f9ff56a',1,'CSimpleIniTempl']]],
   ['sections_20and_20keys_5',['GETTING SECTIONS AND KEYS',['../md_README.html#autotoc_md10',1,'']]],
@@ -20,10 +20,12 @@ var searchData=
   ['si_5fgenericcase_17',['SI_GenericCase',['../structSI__GenericCase.html',1,'']]],
   ['si_5fgenericnocase_18',['SI_GenericNoCase',['../structSI__GenericNoCase.html',1,'']]],
   ['simple_20usage_19',['SIMPLE USAGE',['../md_README.html#autotoc_md8',1,'']]],
-  ['simpleini_20',['simpleini',['../md_README.html',1,'simpleini'],['../index.html',1,'SimpleIni']]],
-  ['sizefromstore_21',['SizeFromStore',['../classSI__ConvertA.html#a30ce0eee2556184d41130311d3c8cc84',1,'SI_ConvertA']]],
-  ['sizetostore_22',['SizeToStore',['../classSI__ConvertA.html#a39e7a8c49712c295b24ff2ae788c01c5',1,'SI_ConvertA']]],
-  ['streams_23',['IO STREAMS',['../index.html#iostreams',1,'']]],
-  ['stringwriter_24',['StringWriter',['../classCSimpleIniTempl_1_1StringWriter.html',1,'CSimpleIniTempl']]],
-  ['summary_25',['summary',['../md_README.html#autotoc_md1',1,'Feature Summary'],['../index.html#usage',1,'USAGE SUMMARY']]]
+  ['simpleini_20',['SimpleIni',['../index.html',1,'']]],
+  ['simpleini_21',['simpleini',['../md_README.html',1,'']]],
+  ['sizefromstore_22',['SizeFromStore',['../classSI__ConvertA.html#a30ce0eee2556184d41130311d3c8cc84',1,'SI_ConvertA']]],
+  ['sizetostore_23',['SizeToStore',['../classSI__ConvertA.html#a39e7a8c49712c295b24ff2ae788c01c5',1,'SI_ConvertA']]],
+  ['streams_24',['IO STREAMS',['../index.html#iostreams',1,'']]],
+  ['stringwriter_25',['StringWriter',['../classCSimpleIniTempl_1_1StringWriter.html',1,'CSimpleIniTempl']]],
+  ['summary_26',['USAGE SUMMARY',['../index.html#usage',1,'']]],
+  ['summary_27',['Feature Summary',['../md_README.html#autotoc_md1',1,'']]]
 ];

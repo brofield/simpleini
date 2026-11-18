@@ -1,7 +1,7 @@
 var searchData=
 [
-  ['save_0',['save',['../classCSimpleIniTempl.html#a9fc5894f12a31b8496a9627cd0f42139',1,'CSimpleIniTempl::Save(std::string &amp;a_sBuffer, bool a_bAddSignature=false) const'],['../classCSimpleIniTempl.html#a6ec10daab297e92cdffe024ba5e6d999',1,'CSimpleIniTempl::Save(OutputWriter &amp;a_oOutput, bool a_bAddSignature=false) const']]],
-  ['savefile_1',['savefile',['../classCSimpleIniTempl.html#af00e754689a94cbe87b387f99f7a5d01',1,'CSimpleIniTempl::SaveFile(const char *a_pszFile, bool a_bAddSignature=true) const'],['../classCSimpleIniTempl.html#a3c3f677c1515e08751cb52a1dfaf1a93',1,'CSimpleIniTempl::SaveFile(FILE *a_pFile, bool a_bAddSignature=false) const']]],
+  ['save_0',['Save',['../classCSimpleIniTempl.html#a6ec10daab297e92cdffe024ba5e6d999',1,'CSimpleIniTempl::Save(OutputWriter &amp;a_oOutput, bool a_bAddSignature=false) const'],['../classCSimpleIniTempl.html#a9fc5894f12a31b8496a9627cd0f42139',1,'CSimpleIniTempl::Save(std::string &amp;a_sBuffer, bool a_bAddSignature=false) const']]],
+  ['savefile_1',['SaveFile',['../classCSimpleIniTempl.html#af00e754689a94cbe87b387f99f7a5d01',1,'CSimpleIniTempl::SaveFile(const char *a_pszFile, bool a_bAddSignature=true) const'],['../classCSimpleIniTempl.html#a3c3f677c1515e08751cb52a1dfaf1a93',1,'CSimpleIniTempl::SaveFile(FILE *a_pFile, bool a_bAddSignature=false) const']]],
   ['sectionexists_2',['SectionExists',['../classCSimpleIniTempl.html#aa2f8e681ae0217fcd4efe8e23f9ff56a',1,'CSimpleIniTempl']]],
   ['setallowkeyonly_3',['SetAllowKeyOnly',['../classCSimpleIniTempl.html#a171d4980d40e975746cb1a6d6841bdfb',1,'CSimpleIniTempl']]],
   ['setboolvalue_4',['SetBoolValue',['../classCSimpleIniTempl.html#a48ae136fa20c5d7eb7ab0b75342b27cf',1,'CSimpleIniTempl']]],
