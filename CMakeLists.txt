@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.14)
 
 project(
 	SimpleIni
-	VERSION 4.27
+	VERSION 4.28
 	DESCRIPTION "Cross-platform C++ library providing a simple API to read and write INI-style configuration files"
 	LANGUAGES CXX C
 )
