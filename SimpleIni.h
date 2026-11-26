@@ -1710,33 +1710,93 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::FindEntry(
       return true;
     }
 
-    // find the end of the key name (it may contain spaces)
-    a_pKey = a_pData;
-    while (*a_pData && *a_pData != '=' && !IsNewLineChar(*a_pData)) {
-      ++a_pData;
+    // check if this is a bracketed key, e.g. alias[=] = "nag =" or anythingelse[=] = "nag ="
+    bool bIsBracketKey = false;
+    SI_CHAR *pOpen = a_pData;
+    while (*pOpen && *pOpen != '[' && *pOpen != '=' && !IsNewLineChar(*pOpen)) {
+      ++pOpen;
     }
-    // *a_pData is null, equals, or newline
-
-    // if no value and we don't allow no value, then invalid
-    bHaveValue = (*a_pData == '=');
-    if (!bHaveValue && !m_bAllowKeyOnly) {
-      continue;
+    if (pOpen > a_pData && *pOpen == '[') {
+      SI_CHAR *pClose = pOpen + 1;
+      while (*pClose && *pClose != ']' && !IsNewLineChar(*pClose)) {
+        ++pClose;
+      }
+      if (*pClose == ']') {
+        SI_CHAR *pEq = pClose + 1;
+        while (*pEq && IsSpace(*pEq) && !IsNewLineChar(*pEq)) {
+          ++pEq;
+        }
+        if (*pEq == '=') {
+          bIsBracketKey = true;
+          a_pKey = pOpen + 1;
+          pTrail = pClose - 1;
+          while (pTrail >= a_pKey && IsSpace(*pTrail)) {
+            --pTrail;
+          }
+          ++pTrail;
+          *pTrail = 0;
+          while (*a_pKey && IsSpace(*a_pKey)) {
+            ++a_pKey;
+          }
+          bHaveValue = true;
+          a_pData = pEq;
+        } else if (!*pEq || IsNewLineChar(*pEq)) {
+          if (m_bAllowKeyOnly) {
+            bIsBracketKey = true;
+            a_pKey = pOpen + 1;
+            pTrail = pClose - 1;
+            while (pTrail >= a_pKey && IsSpace(*pTrail)) {
+              --pTrail;
+            }
+            ++pTrail;
+            *pTrail = 0;
+            while (*a_pKey && IsSpace(*a_pKey)) {
+              ++a_pKey;
+            }
+            bHaveValue = false;
+            a_pData = pEq;
+          }
+        }
+      }
     }
 
-    // empty keys are invalid
-    if (bHaveValue && a_pKey == a_pData) {
-      while (*a_pData && !IsNewLineChar(*a_pData)) {
+    if (!bIsBracketKey) {
+      // find the end of the key name (it may contain spaces)
+      a_pKey = a_pData;
+      while (*a_pData && *a_pData != '=' && !IsNewLineChar(*a_pData)) {
         ++a_pData;
       }
-      continue;
-    }
+      // *a_pData is null, equals, or newline
 
-    // remove trailing spaces from the key
-    pTrail = a_pData - 1;
-    while (pTrail >= a_pKey && IsSpace(*pTrail)) {
-      --pTrail;
+      // if no value and we don't allow no value, then invalid
+      bHaveValue = (*a_pData == '=');
+      if (!bHaveValue && !m_bAllowKeyOnly) {
+        continue;
+      }
+
+      // empty keys are invalid
+      if (bHaveValue && a_pKey == a_pData) {
+        while (*a_pData && !IsNewLineChar(*a_pData)) {
+          ++a_pData;
+        }
+        continue;
+      }
+
+      // remove trailing spaces from the key
+      pTrail = a_pData - 1;
+      while (pTrail >= a_pKey && IsSpace(*pTrail)) {
+        --pTrail;
+      }
+      ++pTrail;
+    } else {
+      // empty keys are invalid
+      if (bHaveValue && !*a_pKey) {
+        while (*a_pData && !IsNewLineChar(*a_pData)) {
+          ++a_pData;
+        }
+        continue;
+      }
     }
-    ++pTrail;
 
     if (bHaveValue) {
       // process the value
@@ -1773,7 +1833,7 @@ bool CSimpleIniTempl<SI_CHAR, SI_STRLESS, SI_CONVERTER>::FindEntry(
       }
 
       // check for quoted values, we are not supporting escapes in quoted values (yet)
-      if (m_bParseQuotes) {
+      if (m_bParseQuotes || bIsBracketKey) {
         --pTrail;
         if (pTrail > a_pVal && *a_pVal == '"' && *pTrail == '"') {
           ++a_pVal;
