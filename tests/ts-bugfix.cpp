@@ -128,3 +128,32 @@ TEST(TestBugFix, TestMultiLineIgnoreTrailSpace2) {
   output.erase(std::remove(output.begin(), output.end(), '\r'), output.end());
   ASSERT_STREQ(expected.c_str(), output.c_str());
 }
+
+TEST(TestBugFix, TestAliasKeyWithEquals) {
+  CSimpleIniA ini(true, false, false);
+  SI_Error rc = ini.LoadData(std::string{
+      "[aliases]\n"
+      "alias[=] = \"nag =\"\n"
+      "alias[!] = \"nag !\"\n"
+      "alias[c] = O-O\n"
+      "anythingelse[=] = \"nag =\"\n"
+      "custom[foo] = bar\n"
+  });
+  ASSERT_EQ(rc, SI_OK);
+
+  CSimpleIniA::TNamesDepend sections;
+  ini.GetAllSections(sections);
+  ASSERT_EQ(sections.size(), 1u);
+
+  CSimpleIniA::TNamesDepend keys;
+  ini.GetAllKeys("aliases", keys);
+  // Note: alias[=] and anythingelse[=] both define the key "=" (multikey is false, so it updates "=")
+  ASSERT_EQ(keys.size(), 4u);
+
+  ASSERT_STREQ(ini.GetValue("aliases", "="), "nag =");
+  ASSERT_STREQ(ini.GetValue("aliases", "!"), "nag !");
+  ASSERT_STREQ(ini.GetValue("aliases", "c"), "O-O");
+  ASSERT_STREQ(ini.GetValue("aliases", "foo"), "bar");
+}
+
+
